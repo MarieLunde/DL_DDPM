@@ -10,7 +10,8 @@ def train(epochs, dataset_name, device):
     dataset_name: 'MNIST' or 'CIFAR10
     device: 'cpu' or 'cuda'
     """
-
+    data_loader = get_data_loader(dataset_name) #TODO (Marie): add data loader
+    
     model = DummyUnet(image_size=28 if dataset_name == 'MNIST' else 256, 
                       channels= 1 if dataset_name == 'MNIST' else 3) #TODO (Anna): add real model
     
@@ -18,7 +19,6 @@ def train(epochs, dataset_name, device):
     MSE = nn.MSELoss()
 
     for i in epochs:
-        data_loader = get_data_loader(dataset_name) #TODO (Marie): add data loader
 
         # Algorithm 1 for a batch of images
         for images in data_loader:
