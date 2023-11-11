@@ -5,7 +5,7 @@ from torchvision import datasets, transforms
 
 
 def get_dataloader(dataset_name, batch_size):
-    dataset_path = '../mnist_data' if dataset_name == 'MNIST' else '../cifar10_data'
+    dataset_path = 'mnist_data' if dataset_name == 'MNIST' else 'cifar10_data'
 
     dataloader = DataLoader(datasets.MNIST(dataset_path, 
                                 download=True, 
