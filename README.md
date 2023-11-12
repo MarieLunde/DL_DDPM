@@ -1,1 +1,1 @@
-# DL_DDPM
+# Denoising Diffusion Models with Pytorch
