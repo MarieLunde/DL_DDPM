@@ -3,5 +3,4 @@
 
 class DDPM():
     
-    # loss function
     pass
