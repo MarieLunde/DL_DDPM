@@ -35,9 +35,9 @@ class DDPM:
         return x0 + noise*t    
         # torch.rand_like(something) = Returns a tensor with the same size as input that is filled with random numbers from a normal distribution with mean 0 and variance 1. 
 
-    def sample_timestep(T):
+    def sample_timestep(self, batchsize):
         # Sampling t from a uniform distribution
-        sampled_steps = torch.randint(1, T) # Are we sampling 1 or many???
+        sampled_steps = torch.randint(1, self.T, (batchsize, )) # Are we sampling 1 or many???
         return sampled_steps      
     
     
