@@ -35,7 +35,8 @@ class DDPM:
         
 
     def sample_timestep(self, batchsize):
-        # Sampling t from a uniform distribution, what batchsize are we using?
+        # Sampling t from a uniform distribution
+        # Batchsize is the batchsize of images, generating one t pr beta
         sampled_steps = torch.randint(1, self.T, (batchsize, )) 
         return sampled_steps      
     
