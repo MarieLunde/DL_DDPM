@@ -32,7 +32,7 @@ def train(dataset_name, epochs, batch_size, device):
 
             # Algorithm 1, line 3
             #t = torch.randn(batch_size) #TODO (Eline): from DiffusionModel
-            t = ddpm.sample_timestep(batch_size)
+            t = ddpm.sample_timestep(images.shape[0])
 
             # Algorithm 1, line 4
             #epsilon = torch.randn_like(images) #TODO (Eline): from DiffusionModel
