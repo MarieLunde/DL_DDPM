@@ -14,13 +14,13 @@ def get_dataloader(dataset_name, batch_size):
             torchvision.transforms.ToTensor(),  # Convert to a PyTorch tensor
             torchvision.transforms.Normalize((0.5,), (0.5,))  # Scale to the range [-1, 1]
             ])
-        dataset = torchvision.datasets.MNIST(root="MNIST", download=True, train=True, transform=transform)
+        dataset = torchvision.datasets.MNIST(root="\data", download=True, train=True, transform=transform)
     elif dataset_name== "CIFAR10":
-        transforms = torchvision.transforms.Compose([
+        transform = torchvision.transforms.Compose([
             torchvision.transforms.ToTensor(),
             torchvision.transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
             ])
-        dataset = torchvision.datasets.CIFAR10(root="CIFAR10", download=True, train=True, transform=transform)
+        dataset = torchvision.datasets.CIFAR10(root="\data", download=True, train=True, transform=transform)
     else:
         raise AssertionError('Unknown dataset')
 
