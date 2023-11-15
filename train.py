@@ -2,7 +2,7 @@ import sys
 import torch
 from torch import nn
 from model import Unet, DummyUnet
-from dataloader import get_dataloader_mnist
+from dataloader import get_dataloader
 from ddpm import DDPM
 
 
@@ -13,7 +13,7 @@ def train(dataset_name, epochs, batch_size, device):
     batch_size: batch size
     device: 'cpu' or 'cuda'
     """
-    data_loader = get_dataloader_mnist(dataset_name, batch_size, train_or_test=True)
+    data_loader = get_dataloader(dataset_name, batch_size)
     
     model = DummyUnet(image_size=28 if dataset_name == 'MNIST' else 256, 
                       channels= 1 if dataset_name == 'MNIST' else 3) #TODO (Anna): add real model
@@ -32,7 +32,7 @@ def train(dataset_name, epochs, batch_size, device):
 
             # Algorithm 1, line 3
             #t = torch.randn(batch_size) #TODO (Eline): from DiffusionModel
-            t = ddpm.sample_timestep(batch_size)
+            t = ddpm.sample_timestep(images.shape[0])
 
             # Algorithm 1, line 4
             #epsilon = torch.randn_like(images) #TODO (Eline): from DiffusionModel
