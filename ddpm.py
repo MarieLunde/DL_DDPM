@@ -27,7 +27,7 @@ class DDPM:
         assert self.alpha_bar_prev.shape == (self.T,)
           
 
-    def sample_noise(x0):
+    def sample_noise(self, x0):
         # torch.rand_like(something) = Returns a tensor with the same size as input that is filled with random numbers from a normal distribution with mean 0 and variance 1.     
         noise = torch.randn_like(x0)
         return x0 + noise    
