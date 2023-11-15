@@ -44,7 +44,7 @@ class DDPM:
         return sampled_steps      
     
     
-    def sample_timestep(self, model, num_img, device, timestep, x):
+    def sampling_timestep(self, model, num_img, device, timestep, x):
         t = (torch.ones(num_img)*timestep).long().to(device)
         # sample random noise
         if timestep > 0:
@@ -58,20 +58,19 @@ class DDPM:
     
         return model_mean + torch.sqrt(var_t) * z
 
-    def sample_image(self, img_shape, model, num_img, device):
+    def sampling_image(self, img_shape, model, num_img, device):
         # sampeling initial gaussian noise
         x = 2 * torch.rand((num_img, img_shape[0], img_shape[1]), device=device) - 1  # TODO normalize data between [-1,1]
 
         for timestep in reversed(range(1, self.T)):
             x = DDPM.sample_timestep(self, model, num_img, device, timestep, x)
-            
+
         x0 = x
         return x0
 
     def plot_sampled_img():
         x = torch.randn((1, 28, 28))
         x_np = x.squeeze().numpy()
-
         imshow(x_np, cmap='nipy_spectral_r') 
         title('Random Image')
         axis('off') 
