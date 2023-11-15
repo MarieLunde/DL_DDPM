@@ -3,7 +3,6 @@ import torch
 from torch import nn, Tensor
 from torch.nn.functional import softplus
 from torch.distributions import Distribution
-import math
 import matplotlib as plt
 from matplotlib.pyplot import imshow, title, axis, show
 #TODO: add utility class for DDPM
@@ -33,9 +32,15 @@ class DDPM:
         return x0 + noise    
     
     def noise_function(self, model, x0, noise, t):
-        sqrt_alpha_bar_x0 = math.sqrt(self.alpha_bar)*x0
-        sqrt_1_minus_alpha_bar_noise = math.sqrt(1-self.alpha_bar)*noise
-        return model(sqrt_alpha_bar_x0 + sqrt_1_minus_alpha_bar_noise, t)    
+        #sqrt_alpha_bar_x0 = [torch.sqrt(self.alpha_bar[t][i])*x0[i] for i in range(64)]
+        #sqrt_1_minus_alpha_bar_noise = [torch.sqrt(1-self.alpha_bar[t][i])*noise[i] for i in range(64)]
+        x0 = torch.permute(x0, [3, 2, 1, 0])
+        noise = torch.permute(noise, [3, 2, 1, 0])
+        sqrt_alpha_bar_x0 = torch.sqrt(self.alpha_bar[t])*x0 
+        sqrt_1_minus_alpha_bar_noise = torch.sqrt(1-self.alpha_bar[t])*noise
+        noised_img = sqrt_alpha_bar_x0 + sqrt_1_minus_alpha_bar_noise
+        noised_img = torch.permute(noised_img, [3, 2, 1, 0])
+        return model(noised_img, t)    
         
     def sample_timestep(self, batchsize):
         # Sampling t from a uniform distribution

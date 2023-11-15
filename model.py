@@ -20,7 +20,7 @@ class DummyUnet(nn.Module):
                       stride=1,
                       padding='same')
         )
-    def forward(self, x):
+    def forward(self, x, t):
         return self.net(x)
     
 
