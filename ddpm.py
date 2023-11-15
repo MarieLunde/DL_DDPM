@@ -42,6 +42,22 @@ class DDPM:
         return sampled_steps      
     
     
+    def sampling(self, img_shape, model, num_img, device):
+        # sampeling inital gaussian noise
+        x = torch.randn((num_img, img_shape[0], img_shape[1]),device=device)
+
+        for timestep in reversed(range(self.T)):
+            t = (torch.ones(num_img)*timestep).long().to(self.device)
+            # sample random noise
+            if timestep > 0:
+                z = torch.randn_like(x)
+            else:
+                z = 0
+            pred_noise = model(x, t)
+            var_t = (1 - self.alpha_bar_prev[timestep]) / (1 - self.alpha_bar[timestep]) * self.beta[timestep]
+            model_mean = 1 / torch.sqrt(self.alpha[timestep]) * (x - ((1 - self.alpha[timestep]) / (torch.sqrt(1 - self.alpha_bar[timestep]))) * pred_noise)
+        
+        return model_mean + torch.sqrt(var_t) * z
     
     
        
