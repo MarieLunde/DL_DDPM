@@ -34,10 +34,11 @@ def train(dataset_name, epochs, batch_size, device):
             t = DDPM.sample_timestep(batch_size)
 
             # Algorithm 1, line 4
-            epsilon = torch.randn_like(images) #TODO (Eline): from DiffusionModel
-
+            #epsilon = torch.randn_like(images) #TODO (Eline): from DiffusionModel
+            epsilon = DDPM.sample_noise(images)
             # Algorithm 1, line 5
-            epsilon_theta = torch.randn_like(images, requires_grad=True) #TODO (Eline):  from DiffusionModel, use t to get epsilon_theta
+            #epsilon_theta = torch.randn_like(images, requires_grad=True) #TODO (Eline):  from DiffusionModel, use t to get epsilon_theta
+            epsilon_theta = DDPM.noise_function(model, images, epsilon, t)
             loss = MSE(epsilon, epsilon_theta)
             optimizer.zero_grad()
             loss.backward()
