@@ -1,7 +1,7 @@
 import sys
 import torch
 from torch import nn
-from model import Unet, DummyUnet
+from model import UNet, DummyUnet
 from dataloader import get_dataloader
 from ddpm import DDPM
 
