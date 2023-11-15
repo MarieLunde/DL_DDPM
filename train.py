@@ -3,6 +3,7 @@ import torch
 from torch import nn
 from model import Unet, DummyUnet
 from dataloader import get_dataloader_mnist
+from ddpm import DDPM
 
 
 def train(dataset_name, epochs, batch_size, device):
@@ -29,7 +30,8 @@ def train(dataset_name, epochs, batch_size, device):
             images = images.to(device)
 
             # Algorithm 1, line 3
-            t = torch.randn(batch_size) #TODO (Eline): from DiffusionModel
+            #t = torch.randn(batch_size) #TODO (Eline): from DiffusionModel
+            t = DDPM.sample_timestep(batch_size)
 
             # Algorithm 1, line 4
             epsilon = torch.randn_like(images) #TODO (Eline): from DiffusionModel
