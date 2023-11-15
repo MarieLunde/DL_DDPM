@@ -4,6 +4,8 @@ from torch import nn, Tensor
 from torch.nn.functional import softplus
 from torch.distributions import Distribution
 import math
+import matplotlib as plt
+from matplotlib.pyplot import imshow, title, axis, show
 #TODO: add utility class for DDPM
 
 def beta_scheduler(self):    
@@ -42,28 +44,46 @@ class DDPM:
         return sampled_steps      
     
     
-    def sampling(self, img_shape, model, num_img, device):
-        # sampeling inital gaussian noise
-        x = torch.randn((num_img, img_shape[0], img_shape[1]),device=device)
+    def sample_timestep(self, model, num_img, device, timestep, x):
+        t = (torch.ones(num_img)*timestep).long().to(device)
+        # sample random noise
+        if timestep > 0:
+            z = torch.randn_like(x)
+        else:
+            z = 0
+        pred_noise = model(x, t)
 
-        for timestep in reversed(range(self.T)):
-            t = (torch.ones(num_img)*timestep).long().to(self.device)
-            # sample random noise
-            if timestep > 0:
-                z = torch.randn_like(x)
-            else:
-                z = 0
-            pred_noise = model(x, t)
-            var_t = (1 - self.alpha_bar_prev[timestep]) / (1 - self.alpha_bar[timestep]) * self.beta[timestep]
-            model_mean = 1 / torch.sqrt(self.alpha[timestep]) * (x - ((1 - self.alpha[timestep]) / (torch.sqrt(1 - self.alpha_bar[timestep]))) * pred_noise)
-        
+        var_t = (1 - self.alpha_bar_prev[timestep]) / (1 - self.alpha_bar[timestep]) * self.beta[timestep]
+        model_mean = 1 / torch.sqrt(self.alpha[timestep]) * (x - ((1 - self.alpha[timestep]) / (torch.sqrt(1 - self.alpha_bar[timestep]))) * pred_noise)
+    
         return model_mean + torch.sqrt(var_t) * z
-    
-    
-       
+
+    def sample_image(self, img_shape, model, num_img, device):
+        # sampeling initial gaussian noise
+        x = torch.randn((num_img, img_shape[0], img_shape[1]), device=device)  # TODO normalize data?
+
+        for timestep in reversed(range(1, self.T)):
+            x = DDPM.sample_timestep(self, model, num_img, device, timestep, x)
+        
+        x0 = x
+        return x0
+
+    def plot_sampled_img():
+        x = torch.randn((1, 28, 28))
+        x_np = x.squeeze().numpy()
+
+        imshow(x_np, cmap='nipy_spectral_r') 
+        title('Random Image')
+        axis('off') 
+        show()
+
+# DDPM.plot_sampled_img()
         
 
 
  
         
+
+
+
 
