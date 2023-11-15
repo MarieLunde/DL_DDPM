@@ -69,3 +69,5 @@ if __name__ == '__main__':
 
     # This is where the magic happens
     train(dataset_name, epochs=epochs, batch_size=batch_size, device=device)
+
+    
