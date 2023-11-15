@@ -9,7 +9,7 @@ from matplotlib.pyplot import imshow, title, axis, show
 
 def beta_scheduler(self):    
     # Betas 
-    return torch.linspace(self.beta_start, self.beta_end, self.T, dtype = torch.float64) 
+    return torch.linspace(self.beta_start, self.beta_end, self.T, dtype = torch.float32) 
 
 
 class DDPM:
@@ -81,7 +81,7 @@ class DDPM:
         axis('off') 
         show()
 
-DDPM.plot_sampled_img()
+#DDPM.plot_sampled_img()
         
 
 
