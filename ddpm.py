@@ -60,11 +60,11 @@ class DDPM:
 
     def sample_image(self, img_shape, model, num_img, device):
         # sampeling initial gaussian noise
-        x = torch.randn((num_img, img_shape[0], img_shape[1]), device=device)  # TODO normalize data?
+        x = 2 * torch.rand((num_img, img_shape[0], img_shape[1]), device=device) - 1  # TODO normalize data between [-1,1]
 
         for timestep in reversed(range(1, self.T)):
             x = DDPM.sample_timestep(self, model, num_img, device, timestep, x)
-        
+            
         x0 = x
         return x0
 
@@ -77,7 +77,7 @@ class DDPM:
         axis('off') 
         show()
 
-# DDPM.plot_sampled_img()
+DDPM.plot_sampled_img()
         
 
 
