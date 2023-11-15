@@ -18,6 +18,8 @@ def train(dataset_name, epochs, batch_size, device):
     model = DummyUnet(image_size=28 if dataset_name == 'MNIST' else 256, 
                       channels= 1 if dataset_name == 'MNIST' else 3) #TODO (Anna): add real model
     
+    #model = UNet(1, 10)
+    
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
     MSE = nn.MSELoss()
     ddpm = DDPM()
