@@ -39,13 +39,13 @@ def train(dataset_name, epochs, batch_size, device):
             epsilon = ddpm.sample_noise(images)
 
             # Algorithm 1, line 5
-            epsilon = torch.randn([images.shape[0], 1, 256, 256])
-            images = torch.randn_like(epsilon)
+            epsilon = torch.randn_like(images)
             epsilon_theta = ddpm.noise_function(model, images, epsilon, t)
             loss = MSE(epsilon, epsilon_theta)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+            print(loss)
 
         #TODO: get metrics (FID, Inception score)
         #TODO (Anna): logging
