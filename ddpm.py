@@ -29,59 +29,56 @@ class DDPM:
     def sample_noise(self, x0):
         # torch.rand_like(something) = Returns a tensor with the same size as input that is filled with random numbers from a normal distribution with mean 0 and variance 1.     
         noise = torch.randn_like(x0)
-        return x0 + noise    
+        return noise    
     
     def noise_function(self, model, x0, noise, t):
-        #sqrt_alpha_bar_x0 = [torch.sqrt(self.alpha_bar[t][i])*x0[i] for i in range(64)]
-        #sqrt_1_minus_alpha_bar_noise = [torch.sqrt(1-self.alpha_bar[t][i])*noise[i] for i in range(64)]
-        x0 = torch.permute(x0, [3, 2, 1, 0])
-        noise = torch.permute(noise, [3, 2, 1, 0])
-        sqrt_alpha_bar_x0 = torch.sqrt(self.alpha_bar[t])*x0 
-        sqrt_1_minus_alpha_bar_noise = torch.sqrt(1-self.alpha_bar[t])*noise
+        sqrt_alpha_bar_x0 = torch.sqrt(self.alpha_bar[t][:,None, None, None])*x0
+        sqrt_1_minus_alpha_bar_noise = torch.sqrt(1-self.alpha_bar[t][:,None, None, None])*noise
         noised_img = sqrt_alpha_bar_x0 + sqrt_1_minus_alpha_bar_noise
-        noised_img = torch.permute(noised_img, [3, 2, 1, 0])
-        return model(noised_img, t)    
+        return model(noised_img, t)
         
     def sample_timestep(self, batchsize):
         # Sampling t from a uniform distribution
         # Batchsize is the batchsize of images, generating one t pr beta
         sampled_steps = torch.randint(1, self.T, (batchsize, )) 
-        return sampled_steps      
+        return sampled_steps    
     
     
-    def sampling_timestep(self, model, num_img, device, timestep, x):
-        t = (torch.ones(num_img)*timestep).long().to(device)
-        # sample random noise
+    def sampling_timestep(self, model, device, timestep, x):
+        t = timestep.long().to(device)
+        # sample random noise, step 3
         if timestep > 0:
             z = torch.randn_like(x)
         else:
             z = 0
+        # step 4
         pred_noise = model(x, t)
-
         var_t = (1 - self.alpha_bar_prev[timestep]) / (1 - self.alpha_bar[timestep]) * self.beta[timestep]
         model_mean = 1 / torch.sqrt(self.alpha[timestep]) * (x - ((1 - self.alpha[timestep]) / (torch.sqrt(1 - self.alpha_bar[timestep]))) * pred_noise)
     
         return model_mean + torch.sqrt(var_t) * z
 
-    def sampling_image(self, img_shape, model, num_img, device):
-        # sampeling initial gaussian noise
-        x = 2 * torch.rand((num_img, img_shape[0], img_shape[1]), device=device) - 1  # TODO normalize data between [-1,1]
+    def sampling_image(self, img_shape, model, device):
+        # sampeling initial gaussian noise, step 1 
+        x = 2 * torch.rand((img_shape[0], img_shape[1]), device=device) - 1  # TODO normalize data between [-1,1]
 
-        for timestep in reversed(range(1, self.T)):
-            x = DDPM.sample_timestep(self, model, num_img, device, timestep, x)
+        for timestep in reversed(range(1, self.T)):  # step 2
+            x = DDPM.sample_timestep(self, model, device, timestep, x)
 
         x0 = x
         return x0
 
-    def plot_sampled_img():
+
+
+    def sampling_plot_img():
         x = torch.randn((1, 28, 28))
         x_np = x.squeeze().numpy()
-        imshow(x_np, cmap='nipy_spectral_r') 
+        imshow(x_np, cmap='twilight_shifted') 
         title('Random Image')
         axis('off') 
         show()
 
-#DDPM.plot_sampled_img()
+# DDPM.sampling_plot_img()
         
 
 
