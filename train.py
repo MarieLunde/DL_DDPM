@@ -15,10 +15,10 @@ def train(dataset_name, epochs, batch_size, device):
     """
     data_loader = get_dataloader(dataset_name, batch_size)
     
-    model = DummyUnet(image_size=28 if dataset_name == 'MNIST' else 256, 
-                      channels= 1 if dataset_name == 'MNIST' else 3) #TODO (Anna): add real model
+    #model = DummyUnet(image_size=28 if dataset_name == 'MNIST' else 256, 
+    #                  channels= 1 if dataset_name == 'MNIST' else 3) #TODO (Anna): add real model
     
-    #model = UNet(1, 10)
+    model = UNet(1, 1)
     
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
     MSE = nn.MSELoss()
@@ -37,7 +37,10 @@ def train(dataset_name, epochs, batch_size, device):
 
             # Algorithm 1, line 4
             epsilon = ddpm.sample_noise(images)
+
             # Algorithm 1, line 5
+            epsilon = torch.randn([images.shape[0], 1, 256, 256])
+            images = torch.randn_like(epsilon)
             epsilon_theta = ddpm.noise_function(model, images, epsilon, t)
             loss = MSE(epsilon, epsilon_theta)
             optimizer.zero_grad()

@@ -1,5 +1,6 @@
 from torch import nn
 import torch
+from torch.nn import functional as F
 
 class DummyUnet(nn.Module):
     def __init__(self, image_size, channels):
@@ -40,7 +41,9 @@ class SelfAttention(nn.Module):
         )
 
     def forward(self, x):
+        #print("x.shape", x.shape)
         x = x.view(-1, self.channels, self.size * self.size).swapaxes(1, 2)
+
         x_ln = self.ln(x)
         attention_value, _ = self.mha(x_ln, x_ln, x_ln)
         attention_value = attention_value + x
@@ -66,6 +69,7 @@ class DoubleConv(nn.Module):
         if self.residual:
             return F.gelu(x + self.double_conv(x))
         else:
+            #print("x.shape from double conv", x.shape)
             return self.double_conv(x)
 
 
