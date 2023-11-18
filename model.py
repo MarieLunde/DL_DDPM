@@ -27,10 +27,9 @@ class DummyUnet(nn.Module):
     
 
 class SelfAttention(nn.Module):
-    def __init__(self, channels, size):
+    def __init__(self, channels):
         super(SelfAttention, self).__init__()
         self.channels = channels
-        self.size = size
         self.mha = nn.MultiheadAttention(channels, 4, batch_first=True)
         self.ln = nn.LayerNorm([channels])
         self.ff_self = nn.Sequential(
@@ -41,14 +40,17 @@ class SelfAttention(nn.Module):
         )
 
     def forward(self, x):
-        #print("x.shape", x.shape)
-        x = x.view(-1, self.channels, self.size * self.size).swapaxes(1, 2)
+        img_size = x.shape[-1]
+        x = x.view(-1, self.channels, img_size * img_size)
+        x = x.swapaxes(1, 2)
 
         x_ln = self.ln(x)
         attention_value, _ = self.mha(x_ln, x_ln, x_ln)
         attention_value = attention_value + x
         attention_value = self.ff_self(attention_value) + attention_value
-        return attention_value.swapaxes(2, 1).view(-1, self.channels, self.size, self.size)
+        attention_value = attention_value.swapaxes(2, 1)
+        attention_value = attention_value.view(-1, self.channels, img_size, img_size)
+        return attention_value
 
 
 class DoubleConv(nn.Module):
@@ -69,12 +71,11 @@ class DoubleConv(nn.Module):
         if self.residual:
             return F.gelu(x + self.double_conv(x))
         else:
-            #print("x.shape from double conv", x.shape)
             return self.double_conv(x)
 
 
 class Down(nn.Module):
-    def __init__(self, in_channels, out_channels, emb_dim=256):
+    def __init__(self, in_channels, out_channels, emb_dim=256): #emb dim must be same as time dim
         super().__init__()
         self.maxpool_conv = nn.Sequential(
             nn.MaxPool2d(2),
@@ -97,7 +98,7 @@ class Down(nn.Module):
 
 
 class Up(nn.Module):
-    def __init__(self, in_channels, out_channels, emb_dim=256):
+    def __init__(self, in_channels, out_channels, emb_dim=256): #emb dim must be same as time dim
         super().__init__()
 
         self.up = nn.Upsample(scale_factor=2, mode="bilinear", align_corners=True)
@@ -129,22 +130,22 @@ class UNet(nn.Module):
         self.time_dim = time_dim
         self.inc = DoubleConv(c_in, 64) # 64
         self.down1 = Down(64, 128) #64
-        self.sa1 = SelfAttention(128, 32)
+        self.sa1 = SelfAttention(128)
         self.down2 = Down(128, 256)
-        self.sa2 = SelfAttention(256, 16)
+        self.sa2 = SelfAttention(256)
         self.down3 = Down(256, 256)
-        self.sa3 = SelfAttention(256, 8)
+        self.sa3 = SelfAttention(256)
 
         self.bot1 = DoubleConv(256, 512)
         self.bot2 = DoubleConv(512, 512)
         self.bot3 = DoubleConv(512, 256)
 
         self.up1 = Up(512, 128)
-        self.sa4 = SelfAttention(128, 16)
+        self.sa4 = SelfAttention(128)
         self.up2 = Up(256, 64)
-        self.sa5 = SelfAttention(64, 32)
+        self.sa5 = SelfAttention(64)
         self.up3 = Up(128, 64)
-        self.sa6 = SelfAttention(64, 64)
+        self.sa6 = SelfAttention(64)
         self.outc = nn.Conv2d(64, c_out, kernel_size=1)
 
     def pos_encoding(self, t, channels):
@@ -181,3 +182,17 @@ class UNet(nn.Module):
         x = self.sa6(x)
         output = self.outc(x)
         return output
+    
+
+if __name__ == '__main__':
+    channels = 1
+    time_dim = 256 # must be same as emb shape in positional encoding
+    batch_size = 2
+    img_size = 32 # must be min 16 and a power of 2 (because of 4*downsampling)
+    model = UNet(channels, channels, time_dim)
+    x = torch.randn(batch_size, channels, img_size, img_size)
+    print("orig x.shape", x.shape)
+    t = torch.randn(batch_size)
+    print("orig t.shape", t.shape)
+    output = model(x, t)
+    print("Went through", output.shape)

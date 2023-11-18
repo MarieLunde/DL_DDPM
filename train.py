@@ -45,7 +45,8 @@ def train(dataset_name, epochs, batch_size, device):
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            print(loss)
+            print("Loss (batch)", loss)
+        print("Loss (epoch)", loss)
 
         #TODO: get metrics (FID, Inception score)
         #TODO (Anna): logging
