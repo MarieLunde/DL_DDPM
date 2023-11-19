@@ -12,7 +12,8 @@ def get_dataloader(dataset_name, batch_size):
         # Define the transformation to scale the MNIST dataset
         transform = torchvision.transforms.Compose([
             torchvision.transforms.ToTensor(),  # Convert to a PyTorch tensor
-            torchvision.transforms.Normalize((0.5,), (0.5,))  # Scale to the range [-1, 1]
+            torchvision.transforms.Normalize((0.5,), (0.5,)),  # Scale to the range [-1, 1]
+            torchvision.transforms.Resize((32, 32))  # Stretch the image to 32x32
             ])
         dataset = torchvision.datasets.MNIST(root="\data", download=True, train=True, transform=transform)
     elif dataset_name== "CIFAR10":
