@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#BSUB -q gpua10
+#BSUB -q gpuv100 
 #BSUB -J train
 #BSUB -o outs/train_%J.out
 #BSUB -n 1

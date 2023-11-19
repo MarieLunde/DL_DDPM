@@ -1,7 +1,7 @@
 import sys
 import torch
 from torch import nn
-from model import UNet, DummyUnet
+from model import UNet
 from dataloader import get_dataloader
 from ddpm import DDPM
 
@@ -15,10 +15,10 @@ def train(dataset_name, epochs, batch_size, device):
     """
     data_loader = get_dataloader(dataset_name, batch_size)
     
-    model = DummyUnet(image_size=28 if dataset_name == 'MNIST' else 256, 
-                      channels= 1 if dataset_name == 'MNIST' else 3) #TODO (Anna): add real model
+    # model = DummyUnet(image_size=28 if dataset_name == 'MNIST' else 256, 
+                    #   channels= 1 if dataset_name == 'MNIST' else 3) #TODO (Anna): add real model
     
-    #model = UNet(1, 10)
+    model = UNet(1,1)
     
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
     MSE = nn.MSELoss()

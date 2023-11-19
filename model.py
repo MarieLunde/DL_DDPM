@@ -1,28 +1,29 @@
 from torch import nn
+from torch.functional import F
 import torch
 
-class DummyUnet(nn.Module):
-    def __init__(self, image_size, channels):
-        """
-        image_size: the heigth/width of the square image
-        channels: 1 for MNIST and 3 for CIFAR        
-        """
-        super(DummyUnet, self).__init__()
+# class DummyUnet(nn.Module):
+#     def __init__(self, image_size, channels):
+#         """
+#         image_size: the heigth/width of the square image
+#         channels: 1 for MNIST and 3 for CIFAR        
+#         """
+#         super(DummyUnet, self).__init__()
 
-        self.net = nn.Sequential(
-            nn.Conv2d(in_channels=channels,
-                      out_channels=64,
-                      kernel_size=3,
-                      stride=1,
-                      padding='same'),
-            nn.Conv2d(in_channels=64,
-                      out_channels=channels,
-                      kernel_size=3,
-                      stride=1,
-                      padding='same')
-        )
-    def forward(self, x, t):
-        return self.net(x)
+#         self.net = nn.Sequential(
+#             nn.Conv2d(in_channels=channels,
+#                       out_channels=64,
+#                       kernel_size=3,
+#                       stride=1,
+#                       padding='same'),
+#             nn.Conv2d(in_channels=64,
+#                       out_channels=channels,
+#                       kernel_size=3,
+#                       stride=1,
+#                       padding='same')
+#         )
+#     def forward(self, x, t):
+#         return self.net(x)
     
 
 class SelfAttention(nn.Module):
@@ -40,6 +41,7 @@ class SelfAttention(nn.Module):
         )
 
     def forward(self, x):
+        print(x.shape)
         x = x.view(-1, self.channels, self.size * self.size).swapaxes(1, 2)
         x_ln = self.ln(x)
         attention_value, _ = self.mha(x_ln, x_ln, x_ln)
@@ -177,3 +179,5 @@ class UNet(nn.Module):
         x = self.sa6(x)
         output = self.outc(x)
         return output
+    
+
