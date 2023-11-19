@@ -9,6 +9,7 @@ try:
     with_logging = True
 except:
     print("Wandb not installed. Logging will not work.")
+    with_logging = False
 
 def train(dataset_name, epochs, batch_size, device):
     """
@@ -57,9 +58,10 @@ def train(dataset_name, epochs, batch_size, device):
         print("Loss (epoch)", loss)
 
         #TODO (Eline): get metrics (FID, Inception score)
-        wandb.log({"loss": loss,
-                   "FID": 0 #TODO (Eline): replace 0 with FID score
-                   })
+        if with_logging:
+            wandb.log({"loss": loss,
+                    "FID": 0 #TODO (Eline): replace 0 with FID score
+                    })
         #TODO (Marie): save example images
 
 
