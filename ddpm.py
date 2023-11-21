@@ -3,8 +3,9 @@ import torch
 from torch import nn, Tensor
 from torch.nn.functional import softplus
 from torch.distributions import Distribution
-import matplotlib as plt
-from matplotlib.pyplot import imshow, title, axis, show
+import matplotlib.pyplot as plt
+from model import UNet
+
 #TODO: add utility class for DDPM
 
 def beta_scheduler(self):    
@@ -44,8 +45,9 @@ class DDPM:
         return sampled_steps    
     
     
-    def sampling_timestep(self, model, device, timestep, x):
-        t = timestep.long().to(device)
+    def sampling_timestep_img(self, model, device, timestep, x):
+        t = torch.tensor(timestep, dtype=torch.long, device=device)
+        print(t)
         # sample random noise, step 3
         if timestep > 0:
             z = torch.randn_like(x)
@@ -58,30 +60,49 @@ class DDPM:
     
         return model_mean + torch.sqrt(var_t) * z
 
-    def sampling_image(self, img_shape, model, device):
+    def sampling_image(self, img_shape, n_img, channels, model, device):
         # sampeling initial gaussian noise, step 1 
-        x = 2 * torch.rand((img_shape[0], img_shape[1]), device=device) - 1  # TODO normalize data between [-1,1]
-
-        for timestep in reversed(range(1, self.T)):  # step 2
-            x = DDPM.sample_timestep(self, model, device, timestep, x)
+        x = torch.randn((n_img, channels, img_shape[0], img_shape[1]), device=device)
+        print(x)
+        for timestep in reversed(range(1, 10)):  # step 2
+            x = DDPM.sampling_timestep_img(self, model, device, timestep, x)
 
         x0 = x
+        print(x0)
         return x0
 
 
 
-    def sampling_plot_img():
-        x = torch.randn((1, 28, 28))
-        x_np = x.squeeze().numpy()
-        imshow(x_np, cmap='twilight_shifted') 
-        title('Random Image')
-        axis('off') 
-        show()
 
-# DDPM.sampling_plot_img()
+    def show_images(images, title=""):
+        """Shows the provided images as sub-pictures in a square"""
+
+        # Converting images to CPU numpy arrays
+        if type(images) is torch.Tensor:
+            images = images.detach().cpu().numpy()
+
+        # Defining number of rows and columns
+        fig = plt.figure(figsize=(8, 8))
+        rows = int(len(images) ** (1 / 2))
+        cols = round(len(images) / rows)
+
+        # Populating figure with sub-plots
+        idx = 0
+        for r in range(rows):
+            for c in range(cols):
+                fig.add_subplot(rows, cols, idx + 1)
+
+                if idx < len(images):
+                    plt.imshow(images[idx][0], cmap="gray")
+                    idx += 1
+        fig.suptitle(title, fontsize=30)
+
+        # Showing the figure
+        plt.show()
         
 
-
+ddpm_instance = DDPM()  # You may need to pass any required parameters when creating an instance
+# DDPM.show_images(ddpm_instance.sampling_image(img_shape=[32,32], n_img = 1, channels = 1, model = UNet(1,1), device = None), f"Images generated")
  
         
 

@@ -32,6 +32,7 @@ def train(dataset_name, epochs, batch_size, device):
     for epoch in range(epochs):
         print(epoch)
 
+
         # Algorithm 1 for a batch of images
         i = 0 #TO REMOVE
         for images, labels in data_loader: # We don't actually use the labels
