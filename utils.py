@@ -3,6 +3,8 @@ import torch
 import matplotlib.pyplot as plt
 from model import UNet
 from ddpm import *
+import os
+import torchvision
 
 
 
@@ -33,8 +35,17 @@ def show_images(images, title=""):
     plt.show()
 
 
-ddpm_instance = DDPM()  # You may need to pass any required parameters when creating an instance
-show_images(ddpm_instance.sampling_image(img_shape=[32,32], n_img = 1, channels = 1, model = UNet(1,1), device = None), f"Images generated")
- 
+# ddpm_instance = DDPM()  # You may need to pass any required parameters when creating an instance
+# show_images(ddpm_instance.sampling_image(img_shape=[32,32], n_img = 1, channels = 1, model = UNet(1,1), device = None), f"Images generated")
+
+
   
-        
+def save_images(images, epoch, output_folder):
+    os.makedirs(output_folder, exist_ok=True)
+
+    for i, image in enumerate(images):
+        torchvision.utils.save_image(torch.tensor(image), f"{output_folder}/epoch{epoch}_sample{i}.png")
+
+    print(f"Images saved at epoch {epoch}")   
+    
+     

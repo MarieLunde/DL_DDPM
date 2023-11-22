@@ -60,6 +60,7 @@ class DDPM:
         return model_mean + torch.sqrt(var_t) * z
 
     def sampling_image(self, img_shape, n_img, channels, model, device):
+        model.eval()
         # sampeling initial gaussian noise, step 1 
         x = torch.randn((n_img, channels, img_shape[0], img_shape[1]), device=device)
         for timestep in reversed(range(1, 10)):  # step 2

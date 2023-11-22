@@ -4,14 +4,18 @@ from torch import nn
 from model import UNet
 from dataloader import get_dataloader
 from ddpm import DDPM
+from utils import *
 try:
     import wandb
-    with_logging = True
+    with_logging = False
 except:
     print("Wandb not installed. Logging will not work.")
     with_logging = False
 
-def train(dataset_name, epochs, batch_size, device):
+save_images = True
+
+
+def train(dataset_name, epochs, batch_size, device, ):
     """
     dataset_name: 'MNIST' or 'CIFAR10
     epochs: number of epochs
@@ -28,10 +32,13 @@ def train(dataset_name, epochs, batch_size, device):
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
     MSE = nn.MSELoss()
     ddpm = DDPM()
+    save_interval = 2  # Save images every second epoch
+    output_folder = f'image_output_{dataset_name}'
+
 
     for epoch in range(epochs):
+        model.train()
         print(epoch)
-
 
         # Algorithm 1 for a batch of images
         i = 0 #TO REMOVE
@@ -63,7 +70,19 @@ def train(dataset_name, epochs, batch_size, device):
             wandb.log({"loss": loss,
                     "FID": 0 #TODO (Eline): replace 0 with FID score
                     })
+        
         #TODO (Marie): save example images
+        if epoch % save_interval == 0 and save_images == True:
+            print("sampleing")
+            with torch.no_grad():
+                generated_images = ddpm.sampling_image(img_shape=[32,32], n_img = 1, channels = 1, model = model, device = device)
+
+            generated_images_numpy = generated_images.detach().cpu().numpy()
+
+            # Save the images
+            for i, image in enumerate(generated_images_numpy):
+                torchvision.utils.save_image(torch.tensor(image), f"{output_folder}/epoch{epoch}_sample{i}.png")
+
 
 
 if __name__ == '__main__':
