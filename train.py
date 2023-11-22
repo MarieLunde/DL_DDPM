@@ -7,7 +7,7 @@ from ddpm import DDPM
 from utils import *
 try:
     import wandb
-    with_logging = False
+    with_logging = True
 except:
     print("Wandb not installed. Logging will not work.")
     with_logging = False
@@ -36,6 +36,7 @@ def train(dataset_name, epochs, batch_size, device):
     MSE = nn.MSELoss()
     ddpm = DDPM(device=device)
     ddpm.to(device)
+    
     if save_images == True:
         save_interval = 2  # Save images every second epoch
         output_folder_root = f'image_output_{dataset_name}'
