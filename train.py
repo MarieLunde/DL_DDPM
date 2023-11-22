@@ -15,7 +15,7 @@ except:
 save_images = True
 
 
-def train(dataset_name, epochs, batch_size, device, ):
+def train(dataset_name, epochs, batch_size, device):
     """
     dataset_name: 'MNIST' or 'CIFAR10
     epochs: number of epochs
@@ -27,6 +27,7 @@ def train(dataset_name, epochs, batch_size, device, ):
     #model = DummyUnet(image_size=28 if dataset_name == 'MNIST' else 256, 
     #                  channels= 1 if dataset_name == 'MNIST' else 3)
     channels = 1 if dataset_name == 'MNIST' else 3
+    image_shape = 32 
     model = UNet(channels, channels)
     
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
@@ -75,14 +76,13 @@ def train(dataset_name, epochs, batch_size, device, ):
         if epoch % save_interval == 0 and save_images == True:
             print("sampleing")
             with torch.no_grad():
-                generated_images = ddpm.sampling_image(img_shape=[32,32], n_img = 1, channels = 1, model = model, device = device)
+                generated_images = ddpm.sampling_image(image_shape, n_img = 1, channels = channels, model = model, device = device)
 
             generated_images_numpy = generated_images.detach().cpu().numpy()
 
             # Save the images
             for i, image in enumerate(generated_images_numpy):
                 torchvision.utils.save_image(torch.tensor(image), f"{output_folder}/epoch{epoch}_sample{i}.png")
-
 
 
 if __name__ == '__main__':
