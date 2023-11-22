@@ -87,7 +87,7 @@ if __name__ == '__main__':
     if with_logging:
             
         wandb.init(
-        project="diffusion-project",
+        project="diffusion-project", entity="team-perfect-pitch",
         config={
         "device": device,
         "architecture": "UNet",

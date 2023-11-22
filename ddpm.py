@@ -47,7 +47,6 @@ class DDPM:
     
     def sampling_timestep_img(self, model, device, timestep, x):
         t = torch.tensor(timestep, dtype=torch.long, device=device)
-        print(t)
         # sample random noise, step 3
         if timestep > 0:
             z = torch.randn_like(x)
@@ -63,48 +62,12 @@ class DDPM:
     def sampling_image(self, img_shape, n_img, channels, model, device):
         # sampeling initial gaussian noise, step 1 
         x = torch.randn((n_img, channels, img_shape[0], img_shape[1]), device=device)
-        print(x)
         for timestep in reversed(range(1, 10)):  # step 2
             x = DDPM.sampling_timestep_img(self, model, device, timestep, x)
 
         x0 = x
-        print(x0)
         return x0
-
-
-
-
-    def show_images(images, title=""):
-        """Shows the provided images as sub-pictures in a square"""
-
-        # Converting images to CPU numpy arrays
-        if type(images) is torch.Tensor:
-            images = images.detach().cpu().numpy()
-
-        # Defining number of rows and columns
-        fig = plt.figure(figsize=(8, 8))
-        rows = int(len(images) ** (1 / 2))
-        cols = round(len(images) / rows)
-
-        # Populating figure with sub-plots
-        idx = 0
-        for r in range(rows):
-            for c in range(cols):
-                fig.add_subplot(rows, cols, idx + 1)
-
-                if idx < len(images):
-                    plt.imshow(images[idx][0], cmap="gray")
-                    idx += 1
-        fig.suptitle(title, fontsize=30)
-
-        # Showing the figure
-        plt.show()
-        
-
-ddpm_instance = DDPM()  # You may need to pass any required parameters when creating an instance
-# DDPM.show_images(ddpm_instance.sampling_image(img_shape=[32,32], n_img = 1, channels = 1, model = UNet(1,1), device = None), f"Images generated")
- 
-        
+      
 
 
 
