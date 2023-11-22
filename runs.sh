@@ -14,4 +14,4 @@ source ~/irishcream/bin/activate
 
 
 JID=${LSB_JOBID}
-python train.py MNIST 3 64
+python train.py MNIST 30 64
