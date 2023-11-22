@@ -148,6 +148,7 @@ class UNet(nn.Module):
         self.up3 = Up(128, 64)
         self.sa6 = SelfAttention(64)
         self.outc = nn.Conv2d(64, c_out, kernel_size=1)
+        self.to(device)
 
     def pos_encoding(self, t, channels):
         inv_freq = 1.0 / (

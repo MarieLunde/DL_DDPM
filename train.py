@@ -28,7 +28,9 @@ def train(dataset_name, epochs, batch_size, device):
     #                  channels= 1 if dataset_name == 'MNIST' else 3)
     channels = 1 if dataset_name == 'MNIST' else 3
     image_shape = 32 
-    model = UNet(channels, channels)
+    model = UNet(channels, channels, device = device)
+
+    print("model params", next(model.parameters()).get_device())
     
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
     MSE = nn.MSELoss()
@@ -47,9 +49,11 @@ def train(dataset_name, epochs, batch_size, device):
         for images, labels in data_loader: # We don't actually use the labels
             # Algorithm 1, line 2
             images = images.to(device)
+            #print("images", images.get_device())
 
             # Algorithm 1, line 3
-            t = ddpm.sample_timestep(images.shape[0])
+            t = ddpm.sample_timestep(images.shape[0]).to(device)
+            #print("t", t.get_device())
 
             # Algorithm 1, line 4
             epsilon = ddpm.sample_noise(images)
