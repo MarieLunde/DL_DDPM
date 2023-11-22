@@ -10,7 +10,7 @@
 
 module load python3/3.11.3
 module load cuda/12.1.1
-source ~/DLCV/avocado/bin/activate
+source ~/irishcream/bin/activate
 
 
 JID=${LSB_JOBID}
