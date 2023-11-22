@@ -36,8 +36,12 @@ def train(dataset_name, epochs, batch_size, device):
     MSE = nn.MSELoss()
     ddpm = DDPM(device=device)
     ddpm.to(device)
-    save_interval = 2  # Save images every second epoch
-    output_folder = f'image_output_{dataset_name}'
+    if save_images == True:
+        save_interval = 2  # Save images every second epoch
+        output_folder_root = f'image_output_{dataset_name}'
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M")
+        output_folder = os.path.join(output_folder_root, f"run_{timestamp}")
+        os.makedirs(output_folder, exist_ok=True)
 
 
     for epoch in range(epochs):
@@ -87,7 +91,7 @@ def train(dataset_name, epochs, batch_size, device):
 
             # Save the images
             for i, image in enumerate(generated_images_numpy):
-                torchvision.utils.save_image(torch.tensor(image), f"{output_folder}/epoch{epoch}_sample{i}.png")
+                torchvision.utils.save_image(torch.tensor(image), f"{output_folder}/epoch{epoch}_sample{i+1}.png")
 
 
 if __name__ == '__main__':

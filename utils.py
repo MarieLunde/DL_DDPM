@@ -5,6 +5,7 @@ from model import UNet
 from ddpm import *
 import os
 import torchvision
+import datetime
 
 
 
@@ -40,12 +41,14 @@ def show_images(images, title=""):
 
 
   
-def save_images(images, epoch, output_folder):
-    os.makedirs(output_folder, exist_ok=True)
+# def save_images(images, epoch, output_folder_root):
+#     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+#     output_folder = os.path.join(output_folder_root, f"run_{timestamp}")
+#     os.makedirs(output_folder, exist_ok=True)
 
-    for i, image in enumerate(images):
-        torchvision.utils.save_image(torch.tensor(image), f"{output_folder}/epoch{epoch}_sample{i}.png")
 
-    print(f"Images saved at epoch {epoch}")   
+#     for i, image in enumerate(images):
+#         torchvision.utils.save_image(torch.tensor(image), f"{output_folder}/epoch{epoch}_sample{i}.png")
+
     
      
