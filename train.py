@@ -31,7 +31,8 @@ def train(dataset_name, epochs, batch_size, device, ):
     
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
     MSE = nn.MSELoss()
-    ddpm = DDPM()
+    ddpm = DDPM(device=device)
+    ddpm.to(device)
     save_interval = 2  # Save images every second epoch
     output_folder = f'image_output_{dataset_name}'
 

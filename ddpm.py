@@ -6,26 +6,23 @@ from torch.distributions import Distribution
 import matplotlib.pyplot as plt
 from model import UNet
 
-#TODO: add utility class for DDPM
-
-def beta_scheduler(self):    
-    # Betas 
-    return torch.linspace(self.beta_start, self.beta_end, self.T, dtype = torch.float32) 
 
 
-class DDPM:
+class DDPM(nn.Module):
   
-    def __init__(self, beta_start = 0.0001, beta_end = 0.02, T = 1000):
-        
+    def __init__(self, beta_start = 0.0001, beta_end = 0.02, T = 1000, device='cpu'):
+        super(DDPM, self).__init__()
         self.T = T # Timesteps
         self.beta_start = beta_start
         self.beta_end = beta_end
-        self.beta = beta_scheduler(self)  
+        self.beta = self.beta_scheduler()  
         self.alpha = 1 - self.beta
         self.alpha_bar = torch.cumprod(self.alpha, dim=0)
         self.alpha_bar_prev = np.append(1., self.alpha_bar[:-1])
         assert self.alpha_bar_prev.shape == (self.T,)
-          
+    
+    def beta_scheduler(self):     
+        return torch.linspace(self.beta_start, self.beta_end, self.T, dtype = torch.float32) 
 
     def sample_noise(self, x0):
         # torch.rand_like(something) = Returns a tensor with the same size as input that is filled with random numbers from a normal distribution with mean 0 and variance 1.     
@@ -33,7 +30,11 @@ class DDPM:
         return noise    
     
     def noise_function(self, model, x0, noise, t):
+        #print("alpha bar device:", self.alpha_bar.get_device())
+        #print("alpha bar device:", self.alpha_bar[t].get_device())
+        #print("x device", x0.get_device())
         sqrt_alpha_bar_x0 = torch.sqrt(self.alpha_bar[t][:,None, None, None])*x0
+
         sqrt_1_minus_alpha_bar_noise = torch.sqrt(1-self.alpha_bar[t][:,None, None, None])*noise
         noised_img = sqrt_alpha_bar_x0 + sqrt_1_minus_alpha_bar_noise
         return model(noised_img, t)
