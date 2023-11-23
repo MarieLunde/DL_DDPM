@@ -6,6 +6,7 @@ from torchvision import datasets, transforms
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 def get_dataloader(dataset_name, batch_size):
 
     if dataset_name == "MNIST":
@@ -19,13 +20,13 @@ def get_dataloader(dataset_name, batch_size):
     elif dataset_name== "CIFAR10":
         transform = torchvision.transforms.Compose([
             torchvision.transforms.ToTensor(),
-            torchvision.transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+            torchvision.transforms.Normalize( (0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261))
             ])
         dataset = torchvision.datasets.CIFAR10(root="\data", download=True, train=True, transform=transform)
     else:
         raise AssertionError('Unknown dataset')
 
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4)
     
     return dataloader
 
