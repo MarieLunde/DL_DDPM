@@ -5,16 +5,7 @@ from DL_DDPM.model_local import UNet
 from dataloader import get_dataloader
 from ddpm import DDPM
 from utils import *
-<<<<<<< HEAD
 import wandb
-=======
-try:
-    import wandb
-    with_logging = True
-except:
-    print("Wandb not installed. Logging will not work.")
-    with_logging = False
->>>>>>> fa6091e7b995a0352084cef01d104fc80ea891c3
 
 with_logging = True
 save_images = True
