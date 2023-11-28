@@ -6,71 +6,77 @@ from torchvision import datasets, transforms
 import matplotlib.pyplot as plt
 import numpy as np
 
-
+num_workers = 4
 def get_dataloader(dataset_name, batch_size):
 
     if dataset_name == "MNIST":
         # Define the transformation to scale the MNIST dataset
-        transform = torchvision.transforms.Compose([
-            torchvision.transforms.ToTensor(),  # Convert to a PyTorch tensor
-            torchvision.transforms.Normalize((0.5,), (0.5,)),  # Scale to the range [-1, 1]
-            torchvision.transforms.Resize((32, 32))  # Stretch the image to 32x32
+        transform = transforms.Compose([
+            transforms.ToTensor(),  # Convert to a PyTorch tensor
+            transforms.Normalize((0.5,), (0.5,)),  # Scale to the range [-1, 1]
+            transforms.Resize((32, 32))  # Stretch the image to 32x32
             ])
-        dataset = torchvision.datasets.MNIST(root="\data", download=True, train=True, transform=transform)
+        dataset = datasets.MNIST(root=r"\data", download=True, train=True, transform=transform)
     elif dataset_name== "CIFAR10":
-        transform = torchvision.transforms.Compose([
-            torchvision.transforms.ToTensor(),
-            torchvision.transforms.Normalize( (0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261))
-            ])
-        dataset = torchvision.datasets.CIFAR10(root="\data", download=True, train=True, transform=transform)
+        transform = transforms.Compose([
+            transforms.RandomHorizontalFlip(p = 0.5),    # Randomly flip the image horizontally
+            transforms.RandomRotation(10),         # Randomly rotate the image by up to 10 degrees
+            transforms.RandomResizedCrop(32, scale=(0.8, 1.0), ratio=(0.8, 1.2)),  # Randomly resize and crop the image
+            transforms.RandomVerticalFlip(p = 0.5),      # Randomly flip the image vertically
+            transforms.RandomAffine(degrees=0, translate=(0.1, 0.1), scale=(0.9, 1.1)),  # Random affine transformation
+            transforms.ToTensor(),
+            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261))
+        ])
+        dataset = datasets.CIFAR10(root=r"\data", download=True, train=True, transform=transform)
     else:
         raise AssertionError('Unknown dataset')
-
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4)
+    
+    # dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
     
     return dataloader
 
 
-def add_gaussian_noise(image, sigma): # TODO change noise function to our own
-    noise = torch.randn_like(image) * sigma
-    noisy_image = image + noise
-    return noisy_image
+# def add_gaussian_noise(image, sigma): # TODO change noise function to our own
+#     noise = torch.randn_like(image) * sigma
+#     noisy_image = image + noise
+#     return noisy_image
 
 
 
-def noise_function(self, model, x0, noise, t):
-    sqrt_alpha_bar_x0 = math.sqrt(self.alpha_bar)*x0
-    sqrt_1_minus_alpha_bar_noise = math.sqrt(1-self.alpha_bar)*noise
-    return model(sqrt_alpha_bar_x0 + sqrt_1_minus_alpha_bar_noise, t)  
+# def noise_function(self, model, x0, noise, t):
+#     sqrt_alpha_bar_x0 = math.sqrt(self.alpha_bar)*x0
+#     sqrt_1_minus_alpha_bar_noise = math.sqrt(1-self.alpha_bar)*noise
+#     return model(sqrt_alpha_bar_x0 + sqrt_1_minus_alpha_bar_noise, t)  
     
 
 
-def plot_images_with_noise(images, labels, num_images=10, sigma_range=(0, 1.5)):
-    fig, axs = plt.subplots(1, num_images, figsize=(12, 6))
-    fig.suptitle('Images with Gradually Added Gaussian Noise', fontsize=16)
+# def plot_images_with_noise(images, labels, num_images=10, sigma_range=(0, 1.5)):
+#     fig, axs = plt.subplots(1, num_images, figsize=(12, 6))
+#     fig.suptitle('Images with Gradually Added Gaussian Noise', fontsize=16)
 
-    for i in range(num_images):
-        # Original Image
-        original_image = images.squeeze().numpy()
-        axs[i].imshow(original_image, cmap='gray')
-        axs[i].set_title(f'Label: {labels}')
-        axs[i].axis('off')
+#     for i in range(num_images):
+#         # Original Image
+#         original_image = images.squeeze().numpy()
+#         axs[i].imshow(original_image, cmap='gray')
+#         axs[i].set_title(f'Label: {labels}')
+#         axs[i].axis('off')
 
-        # Image with Gaussian Noise
-        sigma = np.linspace(sigma_range[0], sigma_range[1], num_images)[i]
-        noisy_image = add_gaussian_noise(images, sigma).squeeze().numpy()
-        axs[i].imshow(noisy_image, cmap='gray')
-        axs[i].set_title(f'Noise: {sigma:.2f}')
-        axs[i].axis('off')
+#         # Image with Gaussian Noise
+#         sigma = np.linspace(sigma_range[0], sigma_range[1], num_images)[i]
+#         noisy_image = add_gaussian_noise(images, sigma).squeeze().numpy()
+#         axs[i].imshow(noisy_image, cmap='gray')
+#         axs[i].set_title(f'Noise: {sigma:.2f}')
+#         axs[i].axis('off')
 
-    plt.show()
+#     plt.show()
 
-# Get the dataloader for the training set
-train_loader = get_dataloader('MNIST', batch_size=1)
+# # Get the dataloader for the training set
+# train_loader = get_dataloader('MNIST', batch_size=1)
 
-# Get the first batch
-for images, labels in train_loader:
-    break  # Exit the loop after the first batch
+# # Get the first batch
+# for images, labels in train_loader:
+#     break  # Exit the loop after the first batch
 
-# Plot images with gradually added Gaussian noise
-# plot_images_with_noise(images, labels)
+# # Plot images with gradually added Gaussian noise
+# # plot_images_with_noise(images, labels)

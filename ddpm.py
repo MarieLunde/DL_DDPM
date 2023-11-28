@@ -16,26 +16,29 @@ class DDPM(nn.Module):
         self.T = T # Timesteps
         self.beta_start = beta_start
         self.beta_end = beta_end
-        self.beta = self.beta_scheduler()  
+        self.beta = self.beta_scheduler_cosine()  
         self.alpha = 1 - self.beta
         self.alpha_bar = torch.cumprod(self.alpha, dim=0)
         self.alpha_bar_prev = torch.cat((torch.tensor([1.], device=device), self.alpha_bar[:-1]))
         #assert self.alpha_bar_prev.shape == (self.T,)
     
-    def beta_scheduler(self):     
+    def beta_scheduler_linear(self):     
         return torch.linspace(self.beta_start, self.beta_end, self.T, dtype = torch.float32, device=self.device) 
-
-    def sample_noise(self, x0):
-        # torch.rand_like(something) = Returns a tensor with the same size as input that is filled with random numbers from a normal distribution with mean 0 and variance 1.     
-        noise = torch.randn_like(x0)
-        return noise    
     
-    def noise_function(self, model, x0, noise, t):
+    def beta_scheduler_cosine(self):
+        # Use a cosine function to schedule beta for each iteration
+        t_values = torch.arange(1, self.T + 1, dtype=torch.float32, device=self.device)
+        beta_values = self.beta_start + 0.5 * (1.0 - torch.cos(t_values * 3.14159265359 / self.T)) * (self.beta_end - self.beta_start)
+        return beta_values
+    
+
+    def noise_function(self, model, x0, t):
+        noise = torch.randn_like(x0)
         sqrt_alpha_bar_x0 = torch.sqrt(self.alpha_bar[t][:,None, None, None])*x0
 
         sqrt_1_minus_alpha_bar_noise = torch.sqrt(1-self.alpha_bar[t][:,None, None, None])*noise
         noised_img = sqrt_alpha_bar_x0 + sqrt_1_minus_alpha_bar_noise
-        return model(noised_img, t)
+        return model(noised_img, t), noise
         
     def sample_timestep(self, batchsize):
         # Sampling t from a uniform distribution

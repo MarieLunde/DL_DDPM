@@ -1,4 +1,5 @@
 import sys
+import os
 import torch
 from torch import nn
 from model import UNet
@@ -12,8 +13,8 @@ except:
     print("Wandb not installed. Logging will not work.")
     with_logging = False
 
-save_images = True
-
+save_images_bool = True
+save_model_bool = True
 
 def train(dataset_name, epochs, batch_size, device):
     """
@@ -32,13 +33,13 @@ def train(dataset_name, epochs, batch_size, device):
 
     print("model params", next(model.parameters()).get_device())
     
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+    optimizer = torch.optim.Adam(model.parameters(), lr=2e-4)
     MSE = nn.MSELoss()
     ddpm = DDPM(device=device)
     ddpm.to(device)
     
-    if save_images == True:
-        save_interval = 2  # Save images every second epoch
+    if save_images_bool:
+        save_interval = 20  # Save images every second epoch
         output_folder_root = f'image_output_{dataset_name}'
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M")
         output_folder = os.path.join(output_folder_root, f"run_{timestamp}")
@@ -50,7 +51,6 @@ def train(dataset_name, epochs, batch_size, device):
         print(epoch)
 
         # Algorithm 1 for a batch of images
-        i = 0 #TO REMOVE
         for images, labels in data_loader: # We don't actually use the labels
             # Algorithm 1, line 2
             images = images.to(device)
@@ -60,20 +60,18 @@ def train(dataset_name, epochs, batch_size, device):
             t = ddpm.sample_timestep(images.shape[0]).to(device)
             #print("t", t.get_device())
 
-            # Algorithm 1, line 4
-            epsilon = ddpm.sample_noise(images)
-
-            # Algorithm 1, line 5
-            epsilon = torch.randn_like(images)
-            epsilon_theta = ddpm.noise_function(model, images, epsilon, t)
+            # Algorithm 1, line 4 and 5
+            epsilon_theta, epsilon = ddpm.noise_function(model, images, t)
             loss = MSE(epsilon, epsilon_theta)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+
+            # Gradient clipping
+            nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+
             print("Loss (batch)", loss)
-            i += 1 #TO REMOVE
-            if i == 10: #TO REMOVE
-                break #TO REMOVE
+
         print("Loss (epoch)", loss)
 
         #TODO (Eline): get metrics (FID, Inception score)
@@ -82,17 +80,32 @@ def train(dataset_name, epochs, batch_size, device):
                     "FID": 0 #TODO (Eline): replace 0 with FID score
                     })
         
-        #TODO (Marie): save example images
-        if epoch % save_interval == 0 and save_images == True:
+        if epoch % save_interval == 0 and save_images_bool:
             print("sampleing")
             with torch.no_grad():
-                generated_images = ddpm.sampling_image(image_shape, n_img = 1, channels = channels, model = model, device = device)
+                generated_images = ddpm.sampling_image(image_shape, n_img = 2, channels = channels, model = model, device = device)
 
             generated_images_numpy = generated_images.detach().cpu().numpy()
 
             # Save the images
             for i, image in enumerate(generated_images_numpy):
                 torchvision.utils.save_image(torch.tensor(image), f"{output_folder}/epoch{epoch}_sample{i+1}.png")
+
+        if epoch % save_interval == 0 and save_model_bool:
+            save_directory = 'saved_models'
+
+            # Check if the directory exists, and if not, create it
+            if not os.path.exists(save_directory):
+                os.makedirs(save_directory)
+
+            # Save the trained model to a specific directory
+            save_path = 'saved_models/CIFAR10_transform.pth'
+            torch.save({
+                'epoch': epoch,
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'loss': loss
+            }, save_path)
 
 
 if __name__ == '__main__':
