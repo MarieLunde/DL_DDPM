@@ -20,10 +20,6 @@ def get_dataloader(dataset_name, batch_size):
     elif dataset_name== "CIFAR10":
         transform = transforms.Compose([
             transforms.RandomHorizontalFlip(p = 0.5),    # Randomly flip the image horizontally
-            transforms.RandomRotation(10),         # Randomly rotate the image by up to 10 degrees
-            transforms.RandomResizedCrop(32, scale=(0.8, 1.0), ratio=(0.8, 1.2)),  # Randomly resize and crop the image
-            transforms.RandomVerticalFlip(p = 0.5),      # Randomly flip the image vertically
-            transforms.RandomAffine(degrees=0, translate=(0.1, 0.1), scale=(0.9, 1.1)),  # Random affine transformation
             transforms.ToTensor(),
             transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261))
         ])
