@@ -55,7 +55,7 @@ class SelfAttention(nn.Module):
 
 
 class DoubleConv(nn.Module):
-    def __init__(self, in_channels, out_channels, mid_channels=None, residual=False):
+    def __init__(self, in_channels, out_channels, mid_channels=None, residual=False, dropout = 0.1):
         super().__init__()
         self.residual = residual
         if not mid_channels:
@@ -64,6 +64,7 @@ class DoubleConv(nn.Module):
             nn.Conv2d(in_channels, mid_channels, kernel_size=3, padding=1, bias=False),
             nn.GroupNorm(1, mid_channels),
             nn.GELU(),
+            nn.Dropout(dropout),
             nn.Conv2d(mid_channels, out_channels, kernel_size=3, padding=1, bias=False),
             nn.GroupNorm(1, out_channels),
         )
@@ -76,12 +77,12 @@ class DoubleConv(nn.Module):
 
 
 class Down(nn.Module):
-    def __init__(self, in_channels, out_channels, emb_dim=256): #emb dim must be same as time dim
+    def __init__(self, in_channels, out_channels, emb_dim=256, dropout=0.1): #emb dim must be same as time dim
         super().__init__()
         self.maxpool_conv = nn.Sequential(
             nn.MaxPool2d(2),
-            DoubleConv(in_channels, in_channels, residual=True),
-            DoubleConv(in_channels, out_channels),
+            DoubleConv(in_channels, in_channels, residual=True, dropout=dropout),
+            DoubleConv(in_channels, out_channels, dropout=dropout),
         )
 
         self.emb_layer = nn.Sequential(
@@ -99,13 +100,13 @@ class Down(nn.Module):
 
 
 class Up(nn.Module):
-    def __init__(self, in_channels, out_channels, emb_dim=256): #emb dim must be same as time dim
+    def __init__(self, in_channels, out_channels, emb_dim=256, dropout=0.1): #emb dim must be same as time dim
         super().__init__()
 
         self.up = nn.Upsample(scale_factor=2, mode="bilinear", align_corners=True)
         self.conv = nn.Sequential(
-            DoubleConv(in_channels, in_channels, residual=True),
-            DoubleConv(in_channels, out_channels, in_channels // 2),
+            DoubleConv(in_channels, in_channels, residual=True, dropout=dropout),
+            DoubleConv(in_channels, out_channels, in_channels // 2, dropout=dropout),
         )
 
         self.emb_layer = nn.Sequential(
@@ -125,27 +126,27 @@ class Up(nn.Module):
 
 
 class UNet(nn.Module):
-    def __init__(self, c_in=3, c_out=3, time_dim=256, device="cpu"):
+    def __init__(self, c_in=3, c_out=3, time_dim=256, device="cpu", dropout=0.1):
         super().__init__()
         self.device = device
         self.time_dim = time_dim
-        self.inc = DoubleConv(c_in, 64) # 64
-        self.down1 = Down(64, 128) #64
+        self.inc = DoubleConv(c_in, 64, dropout=dropout) # 64
+        self.down1 = Down(64, 128, dropout=dropout) #64
         self.sa1 = SelfAttention(128)
-        self.down2 = Down(128, 256)
+        self.down2 = Down(128, 256, dropout=dropout)
         self.sa2 = SelfAttention(256)
-        self.down3 = Down(256, 256)
+        self.down3 = Down(256, 256, dropout=dropout)
         self.sa3 = SelfAttention(256)
 
-        self.bot1 = DoubleConv(256, 512)
-        self.bot2 = DoubleConv(512, 512)
-        self.bot3 = DoubleConv(512, 256)
+        self.bot1 = DoubleConv(256, 512, dropout=dropout)
+        self.bot2 = DoubleConv(512, 512, dropout=dropout)
+        self.bot3 = DoubleConv(512, 256, dropout=dropout)
 
-        self.up1 = Up(512, 128)
+        self.up1 = Up(512, 128, dropout=dropout)
         self.sa4 = SelfAttention(128)
-        self.up2 = Up(256, 64)
+        self.up2 = Up(256, 64, dropout=dropout)
         self.sa5 = SelfAttention(64)
-        self.up3 = Up(128, 64)
+        self.up3 = Up(128, 64, dropout=dropout)
         self.sa6 = SelfAttention(64)
         self.outc = nn.Conv2d(64, c_out, kernel_size=1)
         self.to(device)
