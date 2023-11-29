@@ -64,7 +64,7 @@ def train(dataset_name, epochs, batch_size, device, dropout):
             loss.backward()
 
             # Gradient clipping
-            nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            # nn.utils.clip_grad_norm_(model.parameters(), 1.0)
 
             optimizer.step()
 
@@ -120,7 +120,7 @@ if __name__ == '__main__':
     assert dataset_name in ['MNIST', 'CIFAR10']
     epochs = int(sys.argv[2])
     batch_size = int(sys.argv[3])   
-    dropout = float(sys.argv[4]) if len(sys.argv) == 5 else 0.4
+    dropout = float(sys.argv[4]) if len(sys.argv) == 5 else 0.1
 
 
     # Check if GPU is available
