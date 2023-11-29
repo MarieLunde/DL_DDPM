@@ -93,7 +93,7 @@ def train(dataset_name, epochs, batch_size, device, dropout):
                     "FID": 0
                     })
         
-        if epoch % save_interval == 0 and save_model_bool:
+        if epoch % save_interval == 0 and save_model:
             save_directory = 'saved_models'
 
             # Check if the directory exists, and if not, create it

@@ -67,8 +67,11 @@ class DDPM(nn.Module):
         x = torch.randn((n_img, channels, img_shape, img_shape), device=device)
         for timestep in reversed(range(1, self.T)):  # step 2
             x = self.sampling_timestep_img(model, device, timestep, x)
+        
+        # Transform back to the range [0, 255]
+        x = (x.clamp(-1, 1) + 1) / 2  # Scale to [0, 1]
+        x0 = (x * 255).to(torch.uint8)  # Scale to [0, 255] 
 
-        x0 = x
         return x0
       
 
