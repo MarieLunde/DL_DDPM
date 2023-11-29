@@ -66,7 +66,7 @@ def train(dataset_name, epochs, batch_size, device, dropout):
             loss.backward()
 
             # Gradient clipping
-            nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            # nn.utils.clip_grad_norm_(model.parameters(), 1.0)
 
             optimizer.step()
 
