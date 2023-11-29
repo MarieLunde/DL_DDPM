@@ -8,6 +8,7 @@ from ddpm import DDPM
 from utils import *
 import wandb
 
+
 with_logging = True
 save_images = True
 save_model = True
@@ -73,12 +74,6 @@ def train(dataset_name, epochs, batch_size, device, dropout):
             #if i == 10: #TO REMOVE
             #    break #TO REMOVE
         print("Loss (epoch)", loss)
-
-        #TODO (Eline): get metrics (FID, Inception score)
-        if with_logging:
-            wandb.log({"loss": loss,
-                    "FID": 0 #TODO (Eline): replace 0 with FID score
-                    })
         
         if epoch % save_interval == 0 and save_images:
             print("sampleing")
@@ -91,7 +86,14 @@ def train(dataset_name, epochs, batch_size, device, dropout):
             for i, image in enumerate(generated_images_numpy):
                 torchvision.utils.save_image(torch.tensor(image), f"{output_folder}/epoch{epoch}_sample{i+1}.png")
 
-        if epoch % save_interval == 0 and save_model:
+        #fidscore = fid_score(images, generated_images, device)
+        #inception_score = inception(generated_images, inception_model, device)
+        if with_logging:
+            wandb.log({"loss": loss,
+                    "FID": 0
+                    })
+        
+        if epoch % save_interval == 0 and save_model_bool:
             save_directory = 'saved_models'
 
             # Check if the directory exists, and if not, create it
