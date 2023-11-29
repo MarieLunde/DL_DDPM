@@ -27,3 +27,12 @@ def inception_score(generated_img_samples):
     inceptionscore = inception.compute()
 
     return inceptionscore
+
+
+
+if __name__ == '__main__':
+    x = torch.randn(3, 3, 32, 32)
+    x2 = torch.randn(3, 3, 32, 32)
+
+    fid = fid_score(x, x2)
+    print(fid)
