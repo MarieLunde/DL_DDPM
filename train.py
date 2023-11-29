@@ -7,6 +7,7 @@ from dataloader import get_dataloader
 from ddpm import DDPM
 from utils import *
 import wandb
+from metrics import fid_score, inception_score
 
 
 with_logging = True
@@ -49,7 +50,7 @@ def train(dataset_name, epochs, batch_size, device, dropout):
         print(epoch)
 
         # Algorithm 1 for a batch of images
-        #i = 0 #TO REMOVE
+        i = 0 #TO REMOVE
         for images, labels in data_loader: # We don't actually use the labels
             # Algorithm 1, line 2
             images = images.to(device)
@@ -70,9 +71,9 @@ def train(dataset_name, epochs, batch_size, device, dropout):
 
 
             print("Loss (batch)", loss)
-            #i += 1 #TO REMOVE
-            #if i == 10: #TO REMOVE
-            #    break #TO REMOVE
+            i += 1 #TO REMOVE
+            if i == 10: #TO REMOVE
+                break #TO REMOVE
         print("Loss (epoch)", loss)
         
         if epoch % save_interval == 0 and save_images:
@@ -86,11 +87,12 @@ def train(dataset_name, epochs, batch_size, device, dropout):
             for i, image in enumerate(generated_images_numpy):
                 torchvision.utils.save_image(torch.tensor(image), f"{output_folder}/epoch{epoch}_sample{i+1}.png")
 
-        #fidscore = fid_score(images, generated_images, device)
-        #inception_score = inception(generated_images, inception_model, device)
+        fidscore = fid_score(images, generated_images)
+        inceptionscore = inception_score(generated_images)
         if with_logging:
             wandb.log({"loss": loss,
-                    "FID": 0
+                    "FID": fidscore,
+                    "Inception": inceptionscore
                     })
         
         if epoch % save_interval == 0 and save_model:
