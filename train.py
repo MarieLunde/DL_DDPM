@@ -61,10 +61,12 @@ def train(dataset_name, epochs, batch_size, device, dropout):
             loss = MSE(epsilon, epsilon_theta)
             optimizer.zero_grad()
             loss.backward()
-            optimizer.step()
 
             # Gradient clipping
             nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+
+            optimizer.step()
+
 
             print("Loss (batch)", loss)
             #i += 1 #TO REMOVE
@@ -97,7 +99,7 @@ def train(dataset_name, epochs, batch_size, device, dropout):
                 os.makedirs(save_directory)
 
             # Save the trained model to a specific directory
-            save_path = 'saved_models/CIFAR10.pth'
+            save_path = f'saved_models/{dataset_name}.pth'
             torch.save({
                 'epoch': epoch,
                 'model_state_dict': model.state_dict(),
