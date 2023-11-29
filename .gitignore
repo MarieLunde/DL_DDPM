@@ -163,4 +163,5 @@ cython_debug/
 *data/
 wandb/
 outs/
+saved_models/
 image*
