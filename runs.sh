@@ -3,9 +3,9 @@
 #BSUB -q gpuv100 
 #BSUB -J train
 #BSUB -o outs/train_%J.out
-#BSUB -n 1
+#BSUB -n 4
 #BSUB -R "rusage[mem=5GB]"
-#BSUB -W 60
+#BSUB -W 04:00
 #BSUB -gpu "num=1:mode=exclusive_process"
 
 module load python3/3.11.3
