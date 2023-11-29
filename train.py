@@ -10,6 +10,7 @@ import wandb
 
 with_logging = True
 save_images = True
+save_model = True
 
 
 def train(dataset_name, epochs, batch_size, device, dropout):
@@ -34,7 +35,7 @@ def train(dataset_name, epochs, batch_size, device, dropout):
     ddpm = DDPM(device=device)
     ddpm.to(device)
     
-    if save_images_bool:
+    if save_images:
         save_interval = 20  # Save images every second epoch
         output_folder_root = f'image_output_{dataset_name}'
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M")
@@ -77,7 +78,7 @@ def train(dataset_name, epochs, batch_size, device, dropout):
                     "FID": 0 #TODO (Eline): replace 0 with FID score
                     })
         
-        if epoch % save_interval == 0 and save_images_bool:
+        if epoch % save_interval == 0 and save_images:
             print("sampleing")
             with torch.no_grad():
                 generated_images = ddpm.sampling_image(image_shape, n_img = 2, channels = channels, model = model, device = device)
@@ -88,7 +89,7 @@ def train(dataset_name, epochs, batch_size, device, dropout):
             for i, image in enumerate(generated_images_numpy):
                 torchvision.utils.save_image(torch.tensor(image), f"{output_folder}/epoch{epoch}_sample{i+1}.png")
 
-        if epoch % save_interval == 0 and save_model_bool:
+        if epoch % save_interval == 0 and save_model:
             save_directory = 'saved_models'
 
             # Check if the directory exists, and if not, create it
@@ -96,7 +97,7 @@ def train(dataset_name, epochs, batch_size, device, dropout):
                 os.makedirs(save_directory)
 
             # Save the trained model to a specific directory
-            save_path = 'saved_models/CIFAR10_transform.pth'
+            save_path = 'saved_models/CIFAR10.pth'
             torch.save({
                 'epoch': epoch,
                 'model_state_dict': model.state_dict(),
@@ -115,7 +116,7 @@ if __name__ == '__main__':
     assert dataset_name in ['MNIST', 'CIFAR10']
     epochs = int(sys.argv[2])
     batch_size = int(sys.argv[3])   
-    dropout = float(sys.argv[4]) if len(sys.argv) == 5 else 0.1
+    dropout = float(sys.argv[4]) if len(sys.argv) == 5 else 0.4
 
 
     # Check if GPU is available
