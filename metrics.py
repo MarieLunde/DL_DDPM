@@ -27,7 +27,8 @@ def fid_score(real_img_samples, generated_img_samples):
 def inception_score(generated_img_samples):
     
     generated_img_samples = generated_img_samples.type(torch.uint8)
-    
+    generated_img_samples= generated_img_samples.to('cpu')
+
     inception = InceptionScore()
     
     inception.update(generated_img_samples)

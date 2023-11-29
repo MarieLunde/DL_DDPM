@@ -13,4 +13,4 @@ module load cuda/12.1.1
 source ~/irishcream/bin/activate
 
 JID=${LSB_JOBID}
-python train.py CIFAR10 3 128
+python train.py CIFAR10 100 128
