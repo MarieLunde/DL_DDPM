@@ -5,6 +5,13 @@ from torchmetrics.image.inception import InceptionScore
 
 
 def fid_score(real_img_samples, generated_img_samples):
+    #print("devices")
+    
+    real_img_samples = real_img_samples.to('cpu')
+    #print(real_img_samples.get_device())
+    
+    generated_img_samples= generated_img_samples.to('cpu')
+    #print(generated_img_samples.get_device())
     
     real_img_samples = real_img_samples.type(torch.uint8)
     generated_img_samples = generated_img_samples.type(torch.uint8)

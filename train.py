@@ -88,11 +88,11 @@ def train(dataset_name, epochs, batch_size, device, dropout):
                 torchvision.utils.save_image(torch.tensor(image), f"{output_folder}/epoch{epoch}_sample{i+1}.png")
 
         fidscore = fid_score(images, generated_images)
-        inceptionscore = inception_score(generated_images)
+        #inceptionscore = inception_score(generated_images)
         if with_logging:
             wandb.log({"loss": loss,
                     "FID": fidscore,
-                    "Inception": inceptionscore
+                    "Inception": 0
                     })
         
         if epoch % save_interval == 0 and save_model:
