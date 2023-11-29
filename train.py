@@ -50,7 +50,7 @@ def train(dataset_name, epochs, batch_size, device, dropout):
         print(epoch)
 
         # Algorithm 1 for a batch of images
-        i = 0 #TO REMOVE
+        #i = 0 #TO REMOVE
         for images, labels in data_loader: # We don't actually use the labels
             # Algorithm 1, line 2
             images = images.to(device)
@@ -71,9 +71,9 @@ def train(dataset_name, epochs, batch_size, device, dropout):
 
 
             print("Loss (batch)", loss)
-            i += 1 #TO REMOVE
-            if i == 10: #TO REMOVE
-                break #TO REMOVE
+            #i += 1 #TO REMOVE
+            #if i == 10: #TO REMOVE
+            #    break #TO REMOVE
         print("Loss (epoch)", loss)
         
         if epoch % save_interval == 0 and save_images:
