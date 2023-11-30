@@ -69,10 +69,10 @@ class DDPM(nn.Module):
             x = self.sampling_timestep_img(model, device, timestep, x)
         
         # Transform back to the range [0, 255]
-        x = (x.clamp(-1, 1) + 1) / 2  # Scale to [0, 1]
-        x0 = (x * 255)  # Scale to [0, 255] 
+        # x = (x.clamp(-1, 1) + 1) / 2  # Scale to [0, 1]
+        # x0 = (x * 255)  # Scale to [0, 255] 
 
-        return x0
+        return x
       
 
 

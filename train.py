@@ -10,7 +10,7 @@ import wandb
 from metrics import fid_score, inception_score
 
 
-with_logging = True
+with_logging = False
 save_images = True
 n_image_to_save = 2
 save_model = True
@@ -55,6 +55,7 @@ def train(dataset_name, epochs, batch_size, device, dropout):
         for images, labels in data_loader: # We don't actually use the labels
             # Algorithm 1, line 2
             images = images.to(device)
+            print(images)
 
             # Algorithm 1, line 3
             t = ddpm.sample_timestep(images.shape[0]).to(device)
@@ -66,7 +67,7 @@ def train(dataset_name, epochs, batch_size, device, dropout):
             loss.backward()
 
             # Gradient clipping
-            # nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            nn.utils.clip_grad_norm_(model.parameters(), 1.0)
 
             optimizer.step()
 
