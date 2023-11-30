@@ -13,6 +13,7 @@ from metrics import fid_score, inception_score
 with_logging = False
 save_images = True
 n_image_to_save = 2
+n_image_to_generate = 100 # has to be minimum feature size in FID!
 save_model = True
 
 
@@ -71,8 +72,7 @@ def train(dataset_name, epochs, batch_size, device, dropout):
 
             optimizer.step()
 
-
-            print("Loss (batch)", loss)
+            #print("Loss (batch)", loss)
             #i += 1 #TO REMOVE
             #if i == 10: #TO REMOVE
             #    break #TO REMOVE
@@ -81,7 +81,7 @@ def train(dataset_name, epochs, batch_size, device, dropout):
         if epoch % save_interval == 0 and save_images:
             print("sampleing")
             with torch.no_grad():
-                generated_images = ddpm.sampling_image(image_shape, n_img = 10, channels = channels, model = model, device = device)
+                generated_images = ddpm.sampling_image(image_shape, n_img = n_image_to_generate, channels = channels, model = model, device = device)
 
             generated_images_numpy = generated_images.detach().cpu().numpy()
 
@@ -89,7 +89,8 @@ def train(dataset_name, epochs, batch_size, device, dropout):
             for i, image in enumerate(generated_images_numpy[:n_image_to_save]):
                 torchvision.utils.save_image(torch.tensor(image), f"{output_folder}/epoch{epoch}_sample{i+1}.png")
 
-        fidscore = fid_score(images, generated_images)
+        images_unnormalized = ((images.clamp(-1, 1) + 1) / 2)*255
+        fidscore = fid_score(images_unnormalized, generated_images)
         print("FID", fidscore)
         diversity, quality = inception_score(generated_images)
         print("inception score", diversity, quality)
