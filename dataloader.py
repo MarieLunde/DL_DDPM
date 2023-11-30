@@ -14,15 +14,14 @@ def get_dataloader(dataset_name, batch_size):
         transform = transforms.Compose([
             transforms.ToTensor(),  # Convert to a PyTorch tensor
             transforms.Normalize((0.5,), (0.5,)),  # Scale to the range [-1, 1]
-            transforms.Resize((32, 32))  # Stretch the image to 32x32
+            transforms.Resize((32, 32))  # Stretch the i mage to 32x32
             ])
         dataset = datasets.MNIST(root=r"\data", download=True, train=True, transform=transform)
     elif dataset_name== "CIFAR10":
         transform = transforms.Compose([
             transforms.RandomHorizontalFlip(p = 0.5),    # Randomly flip the image horizontally
             transforms.ToTensor(),
-            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261))
-            # transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
         ])
         dataset = datasets.CIFAR10(root=r"\data", download=True, train=True, transform=transform)
     else:
