@@ -10,7 +10,7 @@ import wandb
 from metrics import fid_score, inception_score
 
 
-with_logging = False
+with_logging = True
 save_images = True
 n_image_to_save = 2
 n_image_to_generate = 100 # has to be minimum feature size in FID!
