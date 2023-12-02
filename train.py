@@ -15,6 +15,7 @@ save_images = True
 n_image_to_save = 2
 n_image_to_generate = 100 # has to be minimum feature size in FID!
 save_model = True
+save_interval = 5  # Save images every xx epoch
 
 
 def train(dataset_name, epochs, batch_size, device, dropout):
@@ -40,7 +41,6 @@ def train(dataset_name, epochs, batch_size, device, dropout):
     ddpm.to(device)
     
     if save_images:
-        save_interval = 20  # Save images every second epoch
         output_folder_root = f'image_output_{dataset_name}'
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M")
         output_folder = os.path.join(output_folder_root, f"run_{timestamp}")
@@ -56,7 +56,6 @@ def train(dataset_name, epochs, batch_size, device, dropout):
         for images, labels in data_loader: # We don't actually use the labels
             # Algorithm 1, line 2
             images = images.to(device)
-            print(images)
 
             # Algorithm 1, line 3
             t = ddpm.sample_timestep(images.shape[0]).to(device)
@@ -78,7 +77,7 @@ def train(dataset_name, epochs, batch_size, device, dropout):
             #    break #TO REMOVE
         print("Loss (epoch)", loss)
         
-        if epoch % save_interval == 0 and save_images:
+        if save_images and epoch % save_interval == 0:
             print("sampleing")
             with torch.no_grad():
                 generated_images = ddpm.sampling_image(image_shape, n_img = n_image_to_generate, channels = channels, model = model, device = device)
@@ -101,7 +100,7 @@ def train(dataset_name, epochs, batch_size, device, dropout):
                     "Inception (quality)": quality
                     })
         
-        if epoch % save_interval == 0 and save_model:
+        if save_model and epoch % save_interval == 0:
             save_directory = 'saved_models'
 
             # Check if the directory exists, and if not, create it
