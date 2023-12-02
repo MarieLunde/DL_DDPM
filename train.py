@@ -10,7 +10,7 @@ import wandb
 from metrics import fid_score, inception_score
 
 
-with_logging = True
+with_logging = False
 save_images = True
 n_image_to_save = 2
 n_image_to_generate = 100 # has to be minimum feature size in FID!
@@ -52,7 +52,7 @@ def train(dataset_name, epochs, batch_size, device, dropout):
         print(epoch)
 
         # Algorithm 1 for a batch of images
-        #i = 0 #TO REMOVE
+        i = 0 #TO REMOVE
         for images, labels in data_loader: # We don't actually use the labels
             # Algorithm 1, line 2
             images = images.to(device)
@@ -72,9 +72,9 @@ def train(dataset_name, epochs, batch_size, device, dropout):
             optimizer.step()
 
             #print("Loss (batch)", loss)
-            #i += 1 #TO REMOVE
-            #if i == 10: #TO REMOVE
-            #    break #TO REMOVE
+            i += 1 #TO REMOVE
+            if i == 10: #TO REMOVE
+                break #TO REMOVE
         print("Loss (epoch)", loss)
         
         if save_images and epoch % save_interval == 0:
@@ -121,13 +121,14 @@ if __name__ == '__main__':
 
     # Parse arguments
     if len(sys.argv) < 4:
-        print("Usage: python train.py <dataset_name> <epochs> <batch_size>")
+        print("Usage: python train.py <dataset_name> <epochs> <batch_size> <dropout> <learning_rate>")
         sys.exit(1)
     dataset_name = sys.argv[1]
     assert dataset_name in ['MNIST', 'CIFAR10']
     epochs = int(sys.argv[2])
     batch_size = int(sys.argv[3])   
     dropout = float(sys.argv[4]) if len(sys.argv) == 5 else 0.1
+    learning_rate = float(sys.argv[5]) if len(sys.argv) == 6 else 2e-4
 
 
     # Check if GPU is available
@@ -147,7 +148,8 @@ if __name__ == '__main__':
         "dataset": dataset_name,
         "epochs": epochs,
         "batch_size": batch_size,
-        "dropout": dropout
+        "dropout": dropout,
+        "learning_rate": learning_rate
         }
     )
 
