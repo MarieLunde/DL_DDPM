@@ -18,7 +18,7 @@ save_model = True
 save_interval = 5  # Save images every xx epoch
 
 
-def train(dataset_name, epochs, batch_size, device, dropout):
+def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, gradient_clipping):
     """
     dataset_name: 'MNIST' or 'CIFAR10
     epochs: number of epochs
@@ -35,7 +35,7 @@ def train(dataset_name, epochs, batch_size, device, dropout):
 
     print("model params", next(model.parameters()).get_device())
     
-    optimizer = torch.optim.Adam(model.parameters(), lr=2e-4)
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     MSE = nn.MSELoss()
     ddpm = DDPM(device=device)
     ddpm.to(device)
@@ -67,7 +67,8 @@ def train(dataset_name, epochs, batch_size, device, dropout):
             loss.backward()
 
             # Gradient clipping
-            nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            if gradient_clipping:
+                nn.utils.clip_grad_norm_(model.parameters(), 1.0)
 
             optimizer.step()
 
@@ -129,6 +130,7 @@ if __name__ == '__main__':
     batch_size = int(sys.argv[3])   
     dropout = float(sys.argv[4]) if len(sys.argv) == 5 else 0.1
     learning_rate = float(sys.argv[5]) if len(sys.argv) == 6 else 2e-4
+    gradient_clipping = bool(sys.argv[6]) if len(sys.argv) == 7 else True
 
 
     # Check if GPU is available
@@ -149,10 +151,12 @@ if __name__ == '__main__':
         "epochs": epochs,
         "batch_size": batch_size,
         "dropout": dropout,
-        "learning_rate": learning_rate
+        "learning_rate": learning_rate,
+        "gradient_clipping": gradient_clipping
         }
     )
 
     # This is where the magic happens
-    train(dataset_name, epochs=epochs, batch_size=batch_size, device=device, dropout=dropout)
+    train(dataset_name, epochs=epochs, batch_size=batch_size, device=device, 
+          dropout=dropout, learning_rate=learning_rate, gradient_clipping=gradient_clipping)
 
