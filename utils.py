@@ -2,53 +2,44 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 from model import UNet
-from ddpm import *
-import os
-import torchvision
-import datetime
+#from ddpm import *
 
 
+USE_CUDA = torch.cuda.is_available()
+device = torch.device("cuda" if USE_CUDA else "cpu")
+dropout =  0.1
+learning_rate =  2e-4
 
-def show_images(images, title=""):
-    """Shows the provided images as sub-pictures in a square"""
+def load_model(dataset_name, device, dropout, learning_rate, path):
+    channels = 1 if dataset_name == 'MNIST' else 3
+    model = UNet(channels, channels, device = device, dropout=dropout)
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
-    # Converting images to CPU numpy arrays
-    if type(images) is torch.Tensor:
-        images = images.detach().cpu().numpy()
+    checkpoint = torch.load(path)
+    model.load_state_dict(checkpoint['model_state_dict'])
+    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    epoch = checkpoint['epoch']
+    loss = checkpoint['loss']
 
-    # Defining number of rows and columns
-    fig = plt.figure(figsize=(8, 8))
-    rows = int(len(images) ** (1 / 2))
-    cols = round(len(images) / rows)
-
-    # Populating figure with sub-plots
-    idx = 0
-    for r in range(rows):
-        for c in range(cols):
-            fig.add_subplot(rows, cols, idx + 1)
-
-            if idx < len(images):
-                plt.imshow(images[idx][0], cmap="gray")
-                idx += 1
-    fig.suptitle(title, fontsize=30)
-
-    # Showing the figure
-    plt.show()
+    model.eval()
+    return model, optimizer, epoch, loss
 
 
-# ddpm_instance = DDPM()  # You may need to pass any required parameters when creating an instance
-# show_images(ddpm_instance.sampling_image(img_shape=[32,32], n_img = 1, channels = 1, model = UNet(1,1), device = None), f"Images generated")
+# Define the path to the saved model
+load_path = 'saved_models\CIFAR10.pth'
+model, optimizer, epoch, loss = load_model("CIFAR10", device, dropout, learning_rate, load_path)
 
+print(epoch)
 
-  
-# def save_images(images, epoch, output_folder_root):
-#     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-#     output_folder = os.path.join(output_folder_root, f"run_{timestamp}")
-#     os.makedirs(output_folder, exist_ok=True)
+def generate_images(image_shape, n_image_to_save, channels, device, model, dataset_name):
+    output_folder = f'image_output_{dataset_name}'
+    with torch.no_grad():
+        generated_images = DDPM.sampling_image(image_shape, n_img = n_image_to_save, channels = channels, model = model, device = device)
+    generated_images_numpy = generated_images.detach().cpu().numpy()
 
+    # Save the images
+    for i, image in enumerate(generated_images_numpy):
+        torchvision.utils.save_image(torch.tensor(image), f"{output_folder}/genrated_img/{dataset_name}_{i}.png")
 
-#     for i, image in enumerate(images):
-#         torchvision.utils.save_image(torch.tensor(image), f"{output_folder}/epoch{epoch}_sample{i}.png")
-
-    
+        
      
