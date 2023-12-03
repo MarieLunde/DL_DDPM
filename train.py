@@ -28,8 +28,6 @@ def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, grad
     """
     data_loader = get_dataloader(dataset_name, batch_size)
     
-    #model = DummyUnet(image_size=28 if dataset_name == 'MNIST' else 256, 
-    #                  channels= 1 if dataset_name == 'MNIST' else 3)
     channels = 1 if dataset_name == 'MNIST' else 3
     image_shape = 32 
     model = UNet(channels, channels, device = device, dropout=dropout)
@@ -42,6 +40,7 @@ def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, grad
     ddpm.to(device)
     fid_dim = 768
     fid = FrechetInceptionDistance(feature=fid_dim, reset_real_features=False)
+    fidscore = None # in case there is no metrics saving, but there is logging
     
     if save_images:
         output_folder_root = f'image_output_{dataset_name}'
