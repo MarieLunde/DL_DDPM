@@ -75,7 +75,7 @@ def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, grad
                 nn.utils.clip_grad_norm_(model.parameters(), 1.0)
 
             optimizer.step()
-            
+
             # we only compute real features in the first epoch to save time
             if save_metrics and epoch == 0:
                 images_unnormalized = ((images.clamp(-1, 1) + 1) / 2)*255
@@ -149,9 +149,9 @@ if __name__ == '__main__':
     assert dataset_name in ['MNIST', 'CIFAR10']
     epochs = int(sys.argv[2])
     batch_size = int(sys.argv[3])   
-    dropout = float(sys.argv[4]) if len(sys.argv) == 5 else 0.1
-    learning_rate = float(sys.argv[5]) if len(sys.argv) == 6 else 2e-4
-    gradient_clipping = bool(sys.argv[6]) if len(sys.argv) == 7 else True
+    dropout = float(sys.argv[4]) if len(sys.argv) >= 5 else 0.1
+    learning_rate = float(sys.argv[5]) if len(sys.argv) >= 6 else 2e-4
+    gradient_clipping = bool(sys.argv[6]) if len(sys.argv) >= 7 else True
 
 
     # Check if GPU is available
