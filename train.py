@@ -5,15 +5,15 @@ from torch import nn
 from model import UNet
 from dataloader import get_dataloader
 from ddpm import DDPM
-from utils import *
 import wandb
 from metrics import preprocess_fid_score, inception_score
 from torchmetrics.image.fid import FrechetInceptionDistance
 import time 
+import datetime
 
 with_logging = True
 save_images = True
-n_image_to_save = 2
+n_image_to_save = 2 # Number of images saved every xx epoch
 save_model = True
 save_interval = 5  # Save images every xx epoch
 save_metrics = True
@@ -121,21 +121,25 @@ def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, grad
                     "Inception (quality)": quality
                     })
         
-        if save_model and epoch % save_interval == 0:
-            save_directory = 'saved_models'
+        # if save_model:
+        #     save_directory = 'saved_models'
 
-            # Check if the directory exists, and if not, create it
-            if not os.path.exists(save_directory):
-                os.makedirs(save_directory)
+        #     # Check if the directory exists, and if not, create it
+        #     if not os.path.exists(save_directory):
+        #         os.makedirs(save_directory)
 
-            # Save the trained model to a specific directory
-            save_path = f'saved_models/{dataset_name}.pth'
-            torch.save({
-                'epoch': epoch,
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                'loss': loss
-            }, save_path)
+        #     # Construct the save path with model architecture and epoch information
+        #     save_path = os.path.join(save_directory, f'{dataset_name}_epoch{epoch}_model.pth')
+        #     print(save_path)
+            
+        #     # Save the trained model to the specific directory
+        #     torch.save({
+        #         'epoch': epoch,
+        #         'model_state_dict': model.state_dict(),
+        #         'optimizer_state_dict': optimizer.state_dict(),
+        #         'loss': loss
+        #     }, save_path)
+
 
 
 if __name__ == '__main__':
