@@ -7,15 +7,16 @@ from dataloader import get_dataloader
 from ddpm import DDPM
 from utils import *
 import wandb
-from metrics import fid_score, inception_score
+from metrics import preprocess_fid_score, inception_score
+from torchmetrics.image.fid import FrechetInceptionDistance
+import time 
 
-
-with_logging = False
+with_logging = True
 save_images = True
 n_image_to_save = 2
-n_image_to_generate = 100 # has to be minimum feature size in FID!
 save_model = True
 save_interval = 5  # Save images every xx epoch
+save_metrics = True
 
 
 def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, gradient_clipping):
@@ -39,6 +40,8 @@ def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, grad
     MSE = nn.MSELoss()
     ddpm = DDPM(device=device)
     ddpm.to(device)
+    fid_dim = 768
+    fid = FrechetInceptionDistance(feature=fid_dim, reset_real_features=False)
     
     if save_images:
         output_folder_root = f'image_output_{dataset_name}'
@@ -52,13 +55,14 @@ def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, grad
         print(epoch)
 
         # Algorithm 1 for a batch of images
-        i = 0 #TO REMOVE
+        #i = 0 #TO REMOVE
         for images, labels in data_loader: # We don't actually use the labels
             # Algorithm 1, line 2
             images = images.to(device)
 
             # Algorithm 1, line 3
-            t = ddpm.sample_timestep(images.shape[0]).to(device)
+            current_batch_size = images.shape[0] # truncated on last epoch
+            t = ddpm.sample_timestep(current_batch_size).to(device)
 
             # Algorithm 1, line 4 and 5
             epsilon_theta, epsilon = ddpm.noise_function(model, images, t)
@@ -71,28 +75,45 @@ def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, grad
                 nn.utils.clip_grad_norm_(model.parameters(), 1.0)
 
             optimizer.step()
+            
+            # we only compute real features in the first epoch to save time
+            if save_metrics and epoch == 0:
+                images_unnormalized = ((images.clamp(-1, 1) + 1) / 2)*255
+                fid.update(preprocess_fid_score(images_unnormalized), real=True)
 
             #print("Loss (batch)", loss)
-            i += 1 #TO REMOVE
-            if i == 10: #TO REMOVE
-                break #TO REMOVE
+            #i += 1 #TO REMOVE
+            #if i == 10: #TO REMOVE
+            #    break #TO REMOVE
+
         print("Loss (epoch)", loss)
+
+        if save_metrics and epoch % save_interval == 0:
+            print('saving metrics -allow min 10 minutes')
+            print('gen', time.strftime("%H:%M:%S", time.localtime()))
+            n_image_to_gen = 64 # we can't load all in at the same time
+            for i in range((fid_dim // n_image_to_gen)+1): 
+                with torch.no_grad():
+                    generated_images = ddpm.sampling_image(image_shape, n_img = n_image_to_gen, channels = channels, model = model, device = device)
+                generated_images_numpy = generated_images.detach().cpu().numpy()
+                fid.update(preprocess_fid_score(generated_images), real=False)
+            fidscore = fid.compute() # this also resets fid
+            print("FID", fidscore)
+
         
         if save_images and epoch % save_interval == 0:
             print("sampleing")
             with torch.no_grad():
-                generated_images = ddpm.sampling_image(image_shape, n_img = n_image_to_generate, channels = channels, model = model, device = device)
-
+                generated_images = ddpm.sampling_image(image_shape, n_img = n_image_to_save, channels = channels, model = model, device = device)
             generated_images_numpy = generated_images.detach().cpu().numpy()
 
             # Save the images
-            for i, image in enumerate(generated_images_numpy[:n_image_to_save]):
+            for i, image in enumerate(generated_images_numpy):
                 torchvision.utils.save_image(torch.tensor(image), f"{output_folder}/epoch{epoch}_sample{i+1}.png")
-
-        images_unnormalized = ((images.clamp(-1, 1) + 1) / 2)*255
-        fidscore = fid_score(images_unnormalized, generated_images)
-        print("FID", fidscore)
-        diversity, quality = inception_score(generated_images)
+        
+        
+        #diversity, quality = inception_score(generated_images)
+        diversity, quality = 0, 0
         print("inception score", diversity, quality)
         if with_logging:
             wandb.log({"loss": loss,
