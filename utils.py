@@ -5,10 +5,7 @@ from model import UNet
 #from ddpm import *
 
 
-USE_CUDA = torch.cuda.is_available()
-device = torch.device("cuda" if USE_CUDA else "cpu")
-dropout =  0.1
-learning_rate =  2e-4
+
 
 def load_model(dataset_name, device, dropout, learning_rate, path):
     channels = 1 if dataset_name == 'MNIST' else 3
@@ -25,11 +22,7 @@ def load_model(dataset_name, device, dropout, learning_rate, path):
     return model, optimizer, epoch, loss
 
 
-# Define the path to the saved model
-load_path = 'saved_models\CIFAR10.pth'
-model, optimizer, epoch, loss = load_model("CIFAR10", device, dropout, learning_rate, load_path)
 
-print(epoch)
 
 def generate_images(image_shape, n_image_to_save, channels, device, model, dataset_name):
     output_folder = f'image_output_{dataset_name}'
@@ -41,5 +34,14 @@ def generate_images(image_shape, n_image_to_save, channels, device, model, datas
     for i, image in enumerate(generated_images_numpy):
         torchvision.utils.save_image(torch.tensor(image), f"{output_folder}/genrated_img/{dataset_name}_{i}.png")
 
-        
-     
+if __name__=='__main__':
+            
+    USE_CUDA = torch.cuda.is_available()
+    device = torch.device("cuda" if USE_CUDA else "cpu")
+    dropout =  0.1
+    learning_rate =  2e-4
+    # Define the path to the saved model
+    load_path = 'saved_models\CIFAR10.pth'
+    model, optimizer, epoch, loss = load_model("CIFAR10", device, dropout, learning_rate, load_path)
+
+    print(epoch)
