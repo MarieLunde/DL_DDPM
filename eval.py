@@ -14,7 +14,7 @@ os.makedirs(output_folder, exist_ok=True)
 batch_size = 32
 
 dataset_name='MNIST'
-model_path = f'saved_models/{dataset_name}.pth'
+model_path = f'saved_models/MNIST_2.pth'
 
 USE_CUDA = torch.cuda.is_available()
 print("Running GPU.") if USE_CUDA else print("No GPU available.")
@@ -59,7 +59,6 @@ fids = []
 for k in range(num_fids_for_confint):
 
     for i in range((fid_dim // batch_size)+1): 
-        print(i)
         if i%100 == 0:
             print(i)
         with torch.no_grad():
@@ -77,8 +76,9 @@ for k in range(num_fids_for_confint):
 
     fidscore = fid.compute()
     print(fidscore)
-    fids.append(fidscore.item())
-    with open("final_fids.txt", 'w') as outfile:
-        outfile.write(fids)
+    fids.append(str(fidscore.item()))
+    print(fids)
+    with open(f"final_fids_{fid_dim}.txt", 'w') as outfile:
+        outfile.write(' '.join(fids))
 
 

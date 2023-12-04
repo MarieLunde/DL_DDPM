@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #BSUB -q gpuv100 
-#BSUB -J train
+#BSUB -J eval
 #BSUB -o outs/eval_%J.out
 #BSUB -n 4
 #BSUB -R "rusage[mem=5GB]"
