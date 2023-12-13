@@ -13,10 +13,10 @@ import datetime
 import torchvision
 
 with_logging = True
-save_images = True
+save_images = False
 n_image_to_save = 2 # Number of images saved every xx epoch
 save_model = True
-save_interval = 5  # Save images every xx epoch
+save_interval = 10  # Save images every xx epoch
 save_metrics = False
 
 
@@ -55,7 +55,7 @@ def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, grad
         print(epoch)
 
         # Algorithm 1 for a batch of images
-        i = 0 #TO REMOVE
+        # i = 0 #TO REMOVE
         for images, labels in data_loader: # We don't actually use the labels
             # Algorithm 1, line 2
             images = images.to(device)
@@ -81,10 +81,10 @@ def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, grad
                 images_unnormalized = ((images.clamp(-1, 1) + 1) / 2)*255
                 fid.update(preprocess_fid_score(images_unnormalized), real=True)
 
-            print("Loss (batch)", loss)
-            i += 1 #TO REMOVE
-            if i == 10: #TO REMOVE
-               break #TO REMOVE
+            # print("Loss (batch)", loss)
+            # i += 1 #TO REMOVE
+            # if i == 10: #TO REMOVE
+            #    break #TO REMOVE
 
         print("Loss (epoch)", loss)
 
@@ -122,16 +122,14 @@ def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, grad
                     "Inception (quality)": quality
                     })
         
-        if save_model:
+        if save_model and epoch % 10 == 0:
              save_directory = 'saved_models'
              # Check if the directory exists, and if not, create it
              if not os.path.exists(save_directory):
                  os.makedirs(save_directory)
 
-        #     # Construct the save path with model architecture and epoch information
-        #     save_path = os.path.join(save_directory, f'{dataset_name}_epoch{epoch}_model.pth')
-        #     print(save_path)
-            
+            # Construct the save path with model architecture and epoch information
+             save_path = os.path.join(save_directory, f'{dataset_name}_4.pth')            
              # Save the trained model to the specific directory
              torch.save({
                  'epoch': epoch,

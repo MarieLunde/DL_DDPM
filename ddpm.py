@@ -50,7 +50,7 @@ class DDPM(nn.Module):
     def sampling_timestep_img(self, model, device, timestep, x):
         t = torch.tensor(timestep, dtype=torch.long, device=device)
         # sample random noise, step 3
-        if timestep > 0:
+        if timestep > 1:
             z = torch.randn_like(x)
         else:
             z = 0

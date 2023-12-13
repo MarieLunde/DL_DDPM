@@ -1,8 +1,9 @@
 import numpy as np
+import torchvision
 import torch
 import matplotlib.pyplot as plt
 from model import UNet
-#from ddpm import *
+from ddpm import *
 
 
 
@@ -41,7 +42,7 @@ if __name__=='__main__':
     dropout =  0.1
     learning_rate =  2e-4
     # Define the path to the saved model
-    load_path = 'saved_models\CIFAR10.pth'
+    load_path = 'saved_models\CIFAR10_epoch0_model.pth' 
     model, optimizer, epoch, loss = load_model("CIFAR10", device, dropout, learning_rate, load_path)
 
     print(epoch)

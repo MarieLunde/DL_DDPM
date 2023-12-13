@@ -21,7 +21,8 @@ def get_dataloader(dataset_name, batch_size):
         transform = transforms.Compose([
             transforms.RandomHorizontalFlip(p = 0.5),    # Randomly flip the image horizontally
             transforms.ToTensor(),
-            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+            transforms.Resize((64, 64))  # Stretch the i mage to 32x32
         ])
         dataset = datasets.CIFAR10(root=r"\data", download=True, train=True, transform=transform)
     else:
