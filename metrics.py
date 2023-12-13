@@ -1,10 +1,10 @@
 import torch
 from torchmetrics.image.inception import InceptionScore
 
-def preprocess_fid_score(images):
+def preprocess_fid_score(images, device='cpu'):
     if images.shape[1] == 1: # MNIST
         images = torch.cat((images, images, images), axis=1)
-    images = images.to('cpu') 
+    images = images.to(device) 
     images = images.type(torch.uint8)
     return images
 

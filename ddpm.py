@@ -30,15 +30,17 @@ class DDPM(nn.Module):
         t_values = torch.arange(1, self.T + 1, dtype=torch.float32, device=self.device)
         beta_values = self.beta_start + 0.5 * (1.0 - torch.cos(t_values * 3.14159265359 / self.T)) * (self.beta_end - self.beta_start)
         return beta_values
-    
 
     def noise_function(self, model, x0, t):
         noise = torch.randn_like(x0)
+        noised_img = self._noise_function(noise, x0, t)
+        return model(noised_img, t), noise
+    
+    def _noise_function(self, noise, x0, t):
         sqrt_alpha_bar_x0 = torch.sqrt(self.alpha_bar[t][:,None, None, None])*x0
-
         sqrt_1_minus_alpha_bar_noise = torch.sqrt(1-self.alpha_bar[t][:,None, None, None])*noise
         noised_img = sqrt_alpha_bar_x0 + sqrt_1_minus_alpha_bar_noise
-        return model(noised_img, t), noise
+        return noised_img
         
     def sample_timestep(self, batchsize):
         # Sampling t from a uniform distribution

@@ -164,4 +164,6 @@ cython_debug/
 wandb/
 outs/
 saved_models/
+final_samples/
+noising_example/
 image*
