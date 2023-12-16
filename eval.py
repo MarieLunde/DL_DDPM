@@ -7,14 +7,13 @@ from ddpm import DDPM
 import datetime
 import torchvision
 import os
-
+save_images = False
 output_folder = 'final_samples'
 os.makedirs(output_folder, exist_ok=True)
 
 batch_size = 32
 
 dataset_name='MNIST'
-model_path = f'saved_models/MNIST_2.pth'
 
 USE_CUDA = torch.cuda.is_available()
 print("Running GPU.") if USE_CUDA else print("No GPU available.")
@@ -27,10 +26,6 @@ dropout = 1
 print('getting data loader')
 
 data_loader = get_dataloader(dataset_name, batch_size)
-
-print('loading model')
-model, _, _, _ = load_model(dataset_name, device, dropout, learning_rate, path=model_path)
-
 
 fid_dim = 2048
 fid = FrechetInceptionDistance(feature=fid_dim, reset_real_features=False)
@@ -47,16 +42,20 @@ for images, _ in data_loader:
     images_unnormalized = ((images.clamp(-1, 1) + 1) / 2)*255
     fid.update(preprocess_fid_score(images_unnormalized, device), real=True)
     i += 1
-    if i%1000 == 0:
+    if i%100 == 0:
         print(i, "batches processed")
 
 _, channels, _, image_shape = images.shape
 
 
 print('getting cov and mean for generated images')
-num_fids_for_confint = 10
+model_paths = ['saved_models/MNIST_{i}' for i in range(1, 7)]
 fids = []
-for k in range(num_fids_for_confint):
+for k, model_path in enumerate(model_paths):
+    
+    model_path = f'saved_models/MNIST_2.pth'
+    print('loading model', model_path)
+    model, _, _, _ = load_model(dataset_name, device, dropout, learning_rate, path=model_path)
 
     for i in range((fid_dim // batch_size)+1): 
         if i%100 == 0:
@@ -67,7 +66,7 @@ for k in range(num_fids_for_confint):
         
         fid.update(preprocess_fid_score(generated_images, device), real=False)
 
-        if k == 0: # saving images for poster
+        if save_images and k == 0: # saving images for poster
             generated_images_numpy = generated_images.detach().cpu().numpy()
 
             # Save the images

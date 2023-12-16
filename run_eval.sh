@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#BSUB -q gpuv100 
+#BSUB -q gpuv100
 #BSUB -J eval
 #BSUB -o outs/eval_%J.out
 #BSUB -n 4
