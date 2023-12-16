@@ -13,7 +13,7 @@ import datetime
 import torchvision
 
 with_logging = True
-save_images = False
+save_images = True
 n_image_to_save = 2 # Number of images saved every xx epoch
 save_model = True
 save_interval = 10  # Save images every xx epoch
@@ -129,7 +129,7 @@ def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, grad
                  os.makedirs(save_directory)
 
             # Construct the save path with model architecture and epoch information
-             save_path = os.path.join(save_directory, f'{dataset_name}_4.pth')            
+             save_path = os.path.join(save_directory, f'{dataset_name}.pth')            
              # Save the trained model to the specific directory
              torch.save({
                  'epoch': epoch,

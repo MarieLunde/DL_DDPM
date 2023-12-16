@@ -16,7 +16,7 @@ class DDPM(nn.Module):
         self.T = T # Timesteps
         self.beta_start = beta_start
         self.beta_end = beta_end
-        self.beta = self.beta_scheduler_cosine()  
+        self.beta = self.beta_scheduler_linear()  
         self.alpha = 1 - self.beta
         self.alpha_bar = torch.cumprod(self.alpha, dim=0)
         self.alpha_bar_prev = torch.cat((torch.tensor([1.], device=device), self.alpha_bar[:-1]))
@@ -55,7 +55,7 @@ class DDPM(nn.Module):
         if timestep > 1:
             z = torch.randn_like(x)
         else:
-            z = 0
+            z = torch.zeros_like(x)
         # step 4
         pred_noise = model(x, t)
         var_t = (1 - self.alpha_bar_prev[timestep]) / (1 - self.alpha_bar[timestep]) * self.beta[timestep]

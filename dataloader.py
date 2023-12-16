@@ -19,10 +19,10 @@ def get_dataloader(dataset_name, batch_size):
         dataset = datasets.MNIST(root=r"\data", download=True, train=True, transform=transform)
     elif dataset_name== "CIFAR10":
         transform = transforms.Compose([
-            transforms.RandomHorizontalFlip(p = 0.5),    # Randomly flip the image horizontally
+            # transforms.RandomHorizontalFlip(p = 0.5),    # Randomly flip the image horizontally
             transforms.ToTensor(),
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-            transforms.Resize((64, 64))  # Stretch the i mage to 32x32
+            transforms.Resize((48, 48))  # Stretch the i mage to 32x32
         ])
         dataset = datasets.CIFAR10(root=r"\data", download=True, train=True, transform=transform)
     else:
