@@ -95,7 +95,7 @@ def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, grad
             n_image_to_gen = 64 # we can't load all in at the same time
             for i in range((fid_dim // n_image_to_gen)+1): 
                 with torch.no_grad():
-                    generated_images = ddpm.sampling_image(image_shape, n_img = n_image_to_gen, channels = channels, model = model, device = device)
+                    generated_images = ddpm.sampling_image(model= model, num_img = n_image_to_save, channels = channels, img_shape=image_shape)
                 generated_images_numpy = generated_images.detach().cpu().numpy()
                 fid.update(preprocess_fid_score(generated_images), real=False)
             fidscore = fid.compute() # this also resets fid
@@ -125,7 +125,7 @@ def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, grad
                     })
         
         if save_model and epoch % 10 == 0:
-             save_directory = 'saved_models'
+             save_directory = 'saved_models_1'
              # Check if the directory exists, and if not, create it
              if not os.path.exists(save_directory):
                  os.makedirs(save_directory)
