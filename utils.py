@@ -4,8 +4,7 @@ import torch
 import matplotlib.pyplot as plt
 from model import UNet
 from ddpm import *
-
-
+from PIL import Image
 
 
 def load_model(dataset_name, device, dropout, learning_rate, path):
@@ -23,8 +22,6 @@ def load_model(dataset_name, device, dropout, learning_rate, path):
     return model, optimizer, epoch, loss
 
 
-
-
 def generate_images(image_shape, n_image_to_save, channels, device, model, dataset_name):
     output_folder = f'image_output_{dataset_name}'
     with torch.no_grad():
@@ -34,6 +31,14 @@ def generate_images(image_shape, n_image_to_save, channels, device, model, datas
     # Save the images
     for i, image in enumerate(generated_images_numpy):
         torchvision.utils.save_image(torch.tensor(image), f"{output_folder}/genrated_img/{dataset_name}_{i}.png")
+
+
+def save_images(images, file_path):
+    grid = torchvision.utils.make_grid(images)
+    numpy_array = grid.permute(1, 2, 0).to('cpu').numpy()
+    image = Image.fromarray(numpy_array)
+    image.save(file_path)
+
 
 if __name__=='__main__':
             
@@ -46,3 +51,4 @@ if __name__=='__main__':
     model, optimizer, epoch, loss = load_model("CIFAR10", device, dropout, learning_rate, load_path)
 
     print(epoch)
+
