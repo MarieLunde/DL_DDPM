@@ -11,10 +11,11 @@ from torchmetrics.image.fid import FrechetInceptionDistance
 import time 
 import datetime
 import torchvision
+from utils import *
 
 with_logging = True
 save_images = True
-n_image_to_save = 2 # Number of images saved every xx epoch
+n_image_to_save = 6 # Number of images saved every xx epoch
 save_model = True
 save_interval = 10  # Save images every xx epoch
 save_metrics = False
@@ -35,7 +36,7 @@ def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, grad
 
     print("model params", next(model.parameters()).get_device())
     
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
     MSE = nn.MSELoss()
     ddpm = DDPM(device=device)
     ddpm.to(device)
@@ -50,22 +51,22 @@ def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, grad
         os.makedirs(output_folder, exist_ok=True)
 
 
+    model.train()
+
     for epoch in range(epochs):
-        model.train()
         print(epoch)
 
         # Algorithm 1 for a batch of images
         # i = 0 #TO REMOVE
-        for images, labels in data_loader: # We don't actually use the labels
+        for images, _ in data_loader: # We don't actually use the labels
             # Algorithm 1, line 2
             images = images.to(device)
 
             # Algorithm 1, line 3
             current_batch_size = images.shape[0] # truncated on last epoch
-            t = ddpm.sample_timestep(current_batch_size).to(device)
-
+            
             # Algorithm 1, line 4 and 5
-            epsilon_theta, epsilon = ddpm.noise_function(model, images, t)
+            epsilon_theta, epsilon = ddpm.noising_function(images, current_batch_size, model)
             loss = MSE(epsilon, epsilon_theta)
             optimizer.zero_grad()
             loss.backward()
@@ -104,8 +105,9 @@ def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, grad
         if save_images and epoch % save_interval == 0:
             print("sampleing")
             with torch.no_grad():
-                generated_images = ddpm.sampling_image(image_shape, n_img = n_image_to_save, channels = channels, model = model, device = device)
+                generated_images = ddpm.sampling_image(model= model, num_img = n_image_to_save, channels = channels, img_shape=image_shape)
             generated_images_numpy = generated_images.detach().cpu().numpy()
+            # save_images(generated_images, f"{output_folder}/epoch{epoch}.jpg")
 
             # Save the images
             for i, image in enumerate(generated_images_numpy):
