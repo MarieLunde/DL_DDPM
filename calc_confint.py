@@ -1,6 +1,6 @@
 import numpy as np
 
-filename = "final_fids.txt"
+filename = "final_fids_2048.txt"
 with open(filename, 'r') as file:
     fids = np.array([float(x) for x in file.read().split(' ')])
 
@@ -21,7 +21,4 @@ margin_of_error = standard_error * 1.96 # Using a z-score of 1.96 for 95% confid
 lower_bound = mean - margin_of_error
 upper_bound = mean + margin_of_error
 
-
-print('mean', mean)
-print('margin of error', margin_of_error)
-print(f"Confidence Interval: [{lower_bound}, {upper_bound}]")
+print(f"Confidence Interval: {round(mean, 4)} +/- {round(margin_of_error, 4)}")
