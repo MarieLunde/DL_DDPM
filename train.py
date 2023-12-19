@@ -18,15 +18,21 @@ save_images = True
 n_image_to_save = 6 # Number of images saved every xx epoch
 save_model = True
 save_interval = 10  # Save images every xx epoch
-save_metrics = False
+save_metrics = True
 
 
 def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, gradient_clipping):
     """
+    Main training loop.
+
+    Params:
     dataset_name: 'MNIST' or 'CIFAR10
     epochs: number of epochs
     batch_size: batch size
     device: 'cpu' or 'cuda'
+    dropout: dropout rate
+    learning_rate: learning rate
+    gradient_clipping: whether to use gradient clipping (bool)
     """
     data_loader = get_dataloader(dataset_name, batch_size)
     
@@ -40,7 +46,7 @@ def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, grad
     MSE = nn.MSELoss()
     ddpm = DDPM(device=device)
     ddpm.to(device)
-    fid_dim = 768
+    fid_dim = 64
     fid = FrechetInceptionDistance(feature=fid_dim, reset_real_features=False)
     fidscore = None # in case there is no metrics saving, but there is logging
     
@@ -57,7 +63,6 @@ def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, grad
         print(epoch)
 
         # Algorithm 1 for a batch of images
-        # i = 0 #TO REMOVE
         for images, _ in data_loader: # We don't actually use the labels
             # Algorithm 1, line 2
             images = images.to(device)
@@ -66,7 +71,7 @@ def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, grad
             current_batch_size = images.shape[0] # truncated on last epoch
             
             # Algorithm 1, line 4 and 5
-            epsilon_theta, epsilon = ddpm.noising_function(images, current_batch_size, model)
+            epsilon_theta, epsilon, _, _ = ddpm.noising_function(images, current_batch_size, model)
             loss = MSE(epsilon, epsilon_theta)
             optimizer.zero_grad()
             loss.backward()
@@ -82,10 +87,6 @@ def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, grad
                 images_unnormalized = ((images.clamp(-1, 1) + 1) / 2)*255
                 fid.update(preprocess_fid_score(images_unnormalized), real=True)
 
-            # print("Loss (batch)", loss)
-            # i += 1 #TO REMOVE
-            # if i == 10: #TO REMOVE
-            #    break #TO REMOVE
 
         print("Loss (epoch)", loss)
 
@@ -96,7 +97,6 @@ def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, grad
             for i in range((fid_dim // n_image_to_gen)+1): 
                 with torch.no_grad():
                     generated_images = ddpm.sampling_image(model= model, num_img = n_image_to_save, channels = channels, img_shape=image_shape)
-                generated_images_numpy = generated_images.detach().cpu().numpy()
                 fid.update(preprocess_fid_score(generated_images), real=False)
             fidscore = fid.compute() # this also resets fid
             print("FID", fidscore)
@@ -106,14 +106,8 @@ def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, grad
             print("sampleing")
             with torch.no_grad():
                 generated_images = ddpm.sampling_image(model= model, num_img = n_image_to_save, channels = channels, img_shape=image_shape)
-            generated_images_numpy = generated_images.detach().cpu().numpy()
-            # save_images(generated_images, f"{output_folder}/epoch{epoch}.jpg")
+            save_imgs(generated_images, f"{output_folder}/epoch{epoch}.jpg")
 
-            # Save the images
-            for i, image in enumerate(generated_images_numpy):
-                torchvision.utils.save_image(torch.tensor(image), f"{output_folder}/epoch{epoch}_sample{i+1}.png")
-        
-        
         #diversity, quality = inception_score(generated_images)
         diversity, quality = 0, 0
         print("inception score", diversity, quality)
@@ -125,7 +119,7 @@ def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, grad
                     })
         
         if save_model and epoch % 10 == 0:
-             save_directory = 'saved_models_1'
+             save_directory = f'saved_model_{wandb.run.name}'
              # Check if the directory exists, and if not, create it
              if not os.path.exists(save_directory):
                  os.makedirs(save_directory)
@@ -153,8 +147,8 @@ if __name__ == '__main__':
     epochs = int(sys.argv[2])
     batch_size = int(sys.argv[3])   
     dropout = float(sys.argv[4]) if len(sys.argv) >= 5 else 0.1
-    learning_rate = float(sys.argv[5]) if len(sys.argv) >= 6 else 2e-4
-    gradient_clipping = bool(sys.argv[6]) if len(sys.argv) >= 7 else True
+    learning_rate = float(sys.argv[5]) if len(sys.argv) >= 6 else 0.001
+    gradient_clipping = bool(sys.argv[6]) if len(sys.argv) >= 7 else False
 
 
     # Check if GPU is available
@@ -179,7 +173,7 @@ if __name__ == '__main__':
         "gradient_clipping": gradient_clipping
         }
     )
-
+        
     # This is where the magic happens
     train(dataset_name, epochs=epochs, batch_size=batch_size, device=device, 
           dropout=dropout, learning_rate=learning_rate, gradient_clipping=gradient_clipping)
