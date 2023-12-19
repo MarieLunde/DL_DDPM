@@ -20,22 +20,10 @@ class DDPM(nn.Module):
         self.alpha = 1 - self.beta
         self.alpha_bar = torch.cumprod(self.alpha, dim=0)
         self.alpha_bar_prev = torch.cat((torch.tensor([1.], device=device), self.alpha_bar[:-1]))
-        #assert self.alpha_bar_prev.shape == (self.T,)
+
     
     def beta_scheduler_linear(self):     
         return torch.linspace(self.beta_start, self.beta_end, self.T, dtype = torch.float32, device=self.device) 
-    
-
-    # def noise_function(self, model, x0, t):
-    #     noise = torch.randn_like(x0)
-    #     noised_img = self._noise_function(noise, x0, t)
-    #     return model(noised_img, t), noise
-    
-    # def _noise_function(self, noise, x0, t):
-    #     sqrt_alpha_bar_x0 = torch.sqrt(self.alpha_bar[t][:,None, None, None])*x0
-    #     sqrt_1_minus_alpha_bar_noise = torch.sqrt(1-self.alpha_bar[t][:,None, None, None])*noise
-    #     noised_img = sqrt_alpha_bar_x0 + sqrt_1_minus_alpha_bar_noise
-    #     return noised_img
 
     def noising_function(self, x0, batchsize, model):
         t = torch.randint(1, self.T, (batchsize, ), device = self.device)
@@ -50,7 +38,7 @@ class DDPM(nn.Module):
         x = torch.randn((num_img, channels, img_shape, img_shape),device=self.device)
         model.eval()
         with torch.no_grad():
-            for timestep in reversed(range(self.T)):
+            for timestep in reversed(range(1, self.T)):
                 t = (torch.ones(num_img) * timestep).long().to(self.device)
                 if timestep > 1:
                     z = torch.randn_like(x)
@@ -64,44 +52,3 @@ class DDPM(nn.Module):
         x = (x.clamp(-1, 1) + 1) / 2
         x = (x * 255).type(torch.uint8)
         return x
-        
-    # def sample_timestep(self, batchsize):
-    #     # Sampling t from a uniform distribution
-    #     # Batchsize is the batchsize of images, generating one t pr beta
-    #     sampled_steps = torch.randint(1, self.T, (batchsize, )) 
-    #     return sampled_steps    
-    
-    
-    # def sampling_timestep_img(self, model, device, timestep, x, n_img):
-    #     # t = torch.tensor(timestep, dtype=torch.long, device=device)
-    #     t = (torch.ones(n_img) * timestep).long().to(self.device)
-    #     # sample random noise, step 3
-    #     if timestep > 1:
-    #         z = torch.randn_like(x)
-    #     else:
-    #         z = torch.zeros_like(x)
-    #     # step 4
-    #     pred_noise = model(x, t)
-    #     var_t_1 = (1 - self.alpha_bar[timestep-1]) / (1 - self.alpha_bar[timestep]) * self.beta[timestep]
-    #     var_t_2 = self.beta[timestep]
-    #     model_mean = (1 / torch.sqrt(self.alpha[timestep])) * (x - ((1 - self.alpha[timestep]) / torch.sqrt(1 - self.alpha_bar[timestep])) * pred_noise)
-    
-    #     return model_mean + torch.sqrt(var_t_1) * z
-
-    # def sampling_image(self, img_shape, n_img, channels, model, device):
-    #     model.eval()
-    #     with torch.no_grad():
-    #         # sampeling initial gaussian noise, step 1 
-    #         x = torch.randn((n_img, channels, img_shape, img_shape), device=device)
-    #         for timestep in reversed(range(1, self.T)):  # step 2
-    #             x = self.sampling_timestep_img(model, device, timestep, x, n_img)
-            
-    #         x = (x.clamp(-1, 1) + 1) / 2  # Scale to [0, 1]
-    #         x0 = (x * 255)  # Scale to [0, 255] 
-    #     model.train()
-    #     return x0
-      
-
-
-
-

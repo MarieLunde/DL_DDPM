@@ -1,7 +1,5 @@
-import numpy as np
 import torchvision
 import torch
-import matplotlib.pyplot as plt
 from model import UNet
 from ddpm import *
 from PIL import Image
@@ -33,7 +31,7 @@ def generate_images(image_shape, n_image_to_save, channels, device, model, datas
         torchvision.utils.save_image(torch.tensor(image), f"{output_folder}/genrated_img/{dataset_name}_{i}.png")
 
 
-def save_images(images, file_path):
+def save_imgs(images, file_path):
     grid = torchvision.utils.make_grid(images)
     numpy_array = grid.permute(1, 2, 0).to('cpu').numpy()
     image = Image.fromarray(numpy_array)
@@ -45,7 +43,7 @@ if __name__=='__main__':
     USE_CUDA = torch.cuda.is_available()
     device = torch.device("cuda" if USE_CUDA else "cpu")
     dropout =  0.1
-    learning_rate =  2e-4
+    learning_rate =  0.001
     # Define the path to the saved model
     load_path = 'saved_models\CIFAR10_epoch0_model.pth' 
     model, optimizer, epoch, loss = load_model("CIFAR10", device, dropout, learning_rate, load_path)
