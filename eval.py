@@ -8,12 +8,12 @@ import datetime
 import torchvision
 import os
 save_images = False
-output_folder = 'final_samples'
+dataset_name='CIFAR10'
+output_folder = f'final_samples_{dataset_name}'
 os.makedirs(output_folder, exist_ok=True)
 
 batch_size = 32
 
-dataset_name='MNIST'
 
 USE_CUDA = torch.cuda.is_available()
 print("Running GPU.") if USE_CUDA else print("No GPU available.")
@@ -27,7 +27,7 @@ print('getting data loader')
 
 data_loader = get_dataloader(dataset_name, batch_size)
 
-fid_dim = 2048
+fid_dim = 64
 fid = FrechetInceptionDistance(feature=fid_dim, reset_real_features=False)
 fid.to(device)
 
@@ -49,11 +49,10 @@ _, channels, _, image_shape = images.shape
 
 
 print('getting cov and mean for generated images')
-model_paths = ['saved_models/MNIST_{i}' for i in range(1, 7)]
+model_paths = ['saved_models/{dataset_name}_{i}' for i in range(4, 6)]
 fids = []
 for k, model_path in enumerate(model_paths):
-    
-    model_path = f'saved_models/MNIST_2.pth'
+
     print('loading model', model_path)
     model, _, _, _ = load_model(dataset_name, device, dropout, learning_rate, path=model_path)
 
