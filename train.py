@@ -23,10 +23,16 @@ save_metrics = True
 
 def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, gradient_clipping):
     """
+    Main training loop.
+
+    Params:
     dataset_name: 'MNIST' or 'CIFAR10
     epochs: number of epochs
     batch_size: batch size
     device: 'cpu' or 'cuda'
+    dropout: dropout rate
+    learning_rate: learning rate
+    gradient_clipping: whether to use gradient clipping (bool)
     """
     data_loader = get_dataloader(dataset_name, batch_size)
     
@@ -65,7 +71,7 @@ def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, grad
             current_batch_size = images.shape[0] # truncated on last epoch
             
             # Algorithm 1, line 4 and 5
-            epsilon_theta, epsilon = ddpm.noising_function(images, current_batch_size, model)
+            epsilon_theta, epsilon, _, _ = ddpm.noising_function(images, current_batch_size, model)
             loss = MSE(epsilon, epsilon_theta)
             optimizer.zero_grad()
             loss.backward()
