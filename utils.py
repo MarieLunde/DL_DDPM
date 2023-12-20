@@ -6,11 +6,12 @@ from PIL import Image
 
 
 def load_model(dataset_name, device, dropout, learning_rate, path):
+    """Loads a pickled model and optimizer from a given path"""
     channels = 1 if dataset_name == 'MNIST' else 3
     model = UNet(channels, channels, device = device, dropout=dropout)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
-    checkpoint = torch.load(path)
+    checkpoint = torch.load(path, map_location=device)
     model.load_state_dict(checkpoint['model_state_dict'])
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     epoch = checkpoint['epoch']
@@ -21,6 +22,7 @@ def load_model(dataset_name, device, dropout, learning_rate, path):
 
 
 def generate_images(image_shape, n_image_to_save, channels, device, model, dataset_name):
+    """Generates images from a trained model and saves them to a folder"""
     output_folder = f'image_output_{dataset_name}'
     with torch.no_grad():
         generated_images = DDPM.sampling_image(image_shape, n_img = n_image_to_save, channels = channels, model = model, device = device)
@@ -32,6 +34,7 @@ def generate_images(image_shape, n_image_to_save, channels, device, model, datas
 
 
 def save_imgs(images, file_path):
+    """Saves a set of images to a file"""
     grid = torchvision.utils.make_grid(images)
     numpy_array = grid.permute(1, 2, 0).to('cpu').numpy()
     image = Image.fromarray(numpy_array)

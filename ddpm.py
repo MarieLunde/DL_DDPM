@@ -22,19 +22,25 @@ class DDPM(nn.Module):
         self.alpha_bar_prev = torch.cat((torch.tensor([1.], device=device), self.alpha_bar[:-1]))
 
     
-    def beta_scheduler_linear(self):     
+    def beta_scheduler_linear(self):
+        """Samples T amount of noise levels with equal spacing between beta_start and beta_end"""
         return torch.linspace(self.beta_start, self.beta_end, self.T, dtype = torch.float32, device=self.device) 
 
     def noising_function(self, x0, batchsize, model):
+        """ Adds noise to a images according to randomly sampled noise levels.
+          Then predicts the noise from the noised image"""
         t = torch.randint(1, self.T, (batchsize, ), device = self.device)
         noise = torch.randn_like(x0).to(self.device)
         sqrt_alpha_bar_x0 = (torch.sqrt(self.alpha_bar[t]).view(batchsize,1,1,1)).to(self.device)*x0
         sqrt_1_minus_alpha_bar = (torch.sqrt(1-self.alpha_bar[t]).view(batchsize,1,1,1)).to(self.device)
         noised_img = (sqrt_alpha_bar_x0 + sqrt_1_minus_alpha_bar*noise).to(self.device)
         noise_pred = model(noised_img, t)
-        return noise_pred, noise
+        return noise_pred, noise, noised_img, t
 
     def sampling_image(self, model, num_img, channels, img_shape):
+        """
+        Samples num_img images from the model.
+        """
         x = torch.randn((num_img, channels, img_shape, img_shape),device=self.device)
         model.eval()
         with torch.no_grad():
