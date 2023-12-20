@@ -6,14 +6,15 @@ from torchmetrics.image.fid import FrechetInceptionDistance
 from ddpm import DDPM
 import datetime
 import torchvision
+import pickle
 import os
 save_images = False
-output_folder = 'final_samples'
+dataset_name='MNIST'
+output_folder = f'final_samples_{dataset_name}'
 os.makedirs(output_folder, exist_ok=True)
 
 batch_size = 32
 
-dataset_name='MNIST'
 
 USE_CUDA = torch.cuda.is_available()
 print("Running GPU.") if USE_CUDA else print("No GPU available.")
@@ -36,24 +37,34 @@ print(fid._device)
 ddpm = DDPM(device=device)
 
 print('getting cov and mean for real images')
-i = 0
-for images, _ in data_loader:
-    images = images.to(device)
-    images_unnormalized = ((images.clamp(-1, 1) + 1) / 2)*255
-    fid.update(preprocess_fid_score(images_unnormalized, device), real=True)
-    i += 1
-    if i%100 == 0:
-        print(i, "batches processed")
+pickle_name = f'fid_{dataset_name}_{fid_dim}.pkl'
+if not pickle_name in os.listdir():
+    i = 0
+    for images, _ in data_loader:
+        images = images.to(device)
+        images_unnormalized = ((images.clamp(-1, 1) + 1) / 2)*255
+        fid.update(preprocess_fid_score(images_unnormalized, device), real=True)
+        i += 1
+        if i%100 == 0:
+            print(i, "batches processed")
 
-_, channels, _, image_shape = images.shape
+    with open(pickle_name, 'wb') as f:
+        pickle.dump(fid, f)
+        print('pickled')
+else:
+    print('loading from file')
+    with open(pickle_name, 'rb') as f:
+        fid = pickle.load(f)
+    print('loaded')
 
+channels = 3 if dataset_name == 'CIFAR10' else 1
+image_shape = 32
 
 print('getting cov and mean for generated images')
-model_paths = ['saved_models/MNIST_{i}' for i in range(1, 7)]
+model_paths = [f'saved_models/{dataset_name}_{i}.pth' for i in range(4, 7)]
 fids = []
 for k, model_path in enumerate(model_paths):
-    
-    model_path = f'saved_models/MNIST_2.pth'
+
     print('loading model', model_path)
     model, _, _, _ = load_model(dataset_name, device, dropout, learning_rate, path=model_path)
 
@@ -61,9 +72,7 @@ for k, model_path in enumerate(model_paths):
         if i%100 == 0:
             print(i)
         with torch.no_grad():
-            generated_images = ddpm.sampling_image(image_shape, n_img = batch_size, channels = channels, model = model, device = device)
-
-        
+            generated_images = ddpm.sampling_image(img_shape=image_shape, model= model, num_img = batch_size, channels = channels)
         fid.update(preprocess_fid_score(generated_images, device), real=False)
 
         if save_images and k == 0: # saving images for poster
@@ -77,7 +86,7 @@ for k, model_path in enumerate(model_paths):
     print(fidscore)
     fids.append(str(fidscore.item()))
     print(fids)
-    with open(f"final_fids_{fid_dim}.txt", 'w') as outfile:
-        outfile.write(' '.join(fids))
+    #with open(f"final_fids_{fid_dim}_{dataset_name}.txt", 'w') as outfile:
+    #    outfile.write(' '.join(fids))
 
 
