@@ -1,10 +1,10 @@
-import numpy as np
+# import numpy as np
 import torch
 from torch import nn, Tensor
-from torch.nn.functional import softplus
-from torch.distributions import Distribution
-import matplotlib.pyplot as plt
-from model import UNet
+# from torch.nn.functional import softplus
+# from torch.distributions import Distribution
+# import matplotlib.pyplot as plt
+# from model import UNet
 
 
 
@@ -32,8 +32,8 @@ class DDPM(nn.Module):
         t = torch.randint(1, self.T, (batchsize, ), device = self.device)
         noise = torch.randn_like(x0).to(self.device)
         sqrt_alpha_bar_x0 = (torch.sqrt(self.alpha_bar[t]).view(batchsize,1,1,1)).to(self.device)*x0
-        sqrt_1_minus_alpha_bar_noise = (torch.sqrt(1-self.alpha_bar[t]).view(batchsize,1,1,1)).to(self.device)*noise
-        noised_img = (sqrt_alpha_bar_x0 + sqrt_1_minus_alpha_bar_noise).to(self.device)
+        sqrt_1_minus_alpha_bar = (torch.sqrt(1-self.alpha_bar[t]).view(batchsize,1,1,1)).to(self.device)
+        noised_img = (sqrt_alpha_bar_x0 + sqrt_1_minus_alpha_bar*noise).to(self.device)
         noise_pred = model(noised_img, t)
         return noise_pred, noise, noised_img, t
 
@@ -49,12 +49,12 @@ class DDPM(nn.Module):
                 if timestep > 1:
                     z = torch.randn_like(x)
                 else:
-                    z = torch.zeros_like(x)
+                    z = 0
                 var = (1 - self.alpha_bar[timestep - 1]) / (1 - self.alpha_bar[timestep]) * self.beta[timestep]
                 pred_noise = model(x, t)
                 model_mean = 1 / torch.sqrt(self.alpha[timestep]) * (x - ((1 - self.alpha[timestep]) / (torch.sqrt(1 - self.alpha_bar[timestep]))) * pred_noise)
                 x = model_mean + torch.sqrt(var) * z
         model.train()
         x = (x.clamp(-1, 1) + 1) / 2
-        x = (x * 255).type(torch.uint8)
-        return x
+        x0 = (x * 255).type(torch.uint8)
+        return x0

@@ -12,6 +12,7 @@ import time
 import datetime
 import torchvision
 from utils import *
+from torch.optim.lr_scheduler import CyclicLR
 
 with_logging = True
 save_images = True
@@ -43,6 +44,16 @@ def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, grad
     print("model params", next(model.parameters()).get_device())
     
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
+    # Specify cyclic learning rate parameters
+    base_lr = 0.001  # Initial learning rate
+    max_lr = 0.01    # Maximum learning rate
+    step_size_up = 100  # Number of steps for the learning rate to increase
+    step_size_down = 100  # Number of steps for the learning rate to decrease
+
+    # Create a cyclic learning rate scheduler
+    scheduler = CyclicLR(optimizer, base_lr, max_lr, step_size_up=step_size_up, step_size_down=step_size_down, mode='triangular')
+
+
     MSE = nn.MSELoss()
     ddpm = DDPM(device=device)
     ddpm.to(device)
@@ -80,9 +91,9 @@ def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, grad
             if gradient_clipping:
                 nn.utils.clip_grad_norm_(model.parameters(), 1.0)
 
-            optimizer.step()
+            scheduler.step()
 
-            # we only compute real features in the first epoch to save time
+            # we only compute real features in the first batch to save time
             if save_metrics and epoch == 0:
                 images_unnormalized = ((images.clamp(-1, 1) + 1) / 2)*255
                 fid.update(preprocess_fid_score(images_unnormalized), real=True)
@@ -95,8 +106,7 @@ def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, grad
             print('gen', time.strftime("%H:%M:%S", time.localtime()))
             n_image_to_gen = 64 # we can't load all in at the same time
             for i in range((fid_dim // n_image_to_gen)+1): 
-                with torch.no_grad():
-                    generated_images = ddpm.sampling_image(model= model, num_img = n_image_to_save, channels = channels, img_shape=image_shape)
+                generated_images = ddpm.sampling_image(model= model, num_img = n_image_to_save, channels = channels, img_shape=image_shape)
                 fid.update(preprocess_fid_score(generated_images), real=False)
             fidscore = fid.compute() # this also resets fid
             print("FID", fidscore)
@@ -104,8 +114,7 @@ def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, grad
         
         if save_images and epoch % save_interval == 0:
             print("sampleing")
-            with torch.no_grad():
-                generated_images = ddpm.sampling_image(model= model, num_img = n_image_to_save, channels = channels, img_shape=image_shape)
+            generated_images = ddpm.sampling_image(model= model, num_img = n_image_to_save, channels = channels, img_shape=image_shape)
             save_imgs(generated_images, f"{output_folder}/epoch{epoch}.jpg")
 
         #diversity, quality = inception_score(generated_images)
@@ -148,7 +157,7 @@ if __name__ == '__main__':
     batch_size = int(sys.argv[3])   
     dropout = float(sys.argv[4]) if len(sys.argv) >= 5 else 0.1
     learning_rate = float(sys.argv[5]) if len(sys.argv) >= 6 else 0.001
-    gradient_clipping = bool(sys.argv[6]) if len(sys.argv) >= 7 else False
+    gradient_clipping = bool(sys.argv[6]) if len(sys.argv) >= 7 else True
 
 
     # Check if GPU is available

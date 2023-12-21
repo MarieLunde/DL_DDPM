@@ -1,7 +1,7 @@
 # !/bin/sh
 ### General options
 ### �- specify queue --
-# BSUB -q gpuv100 #SELECT YOUR GPU QUEUE
+# BSUB -q gpua100 #SELECT YOUR GPU QUEUE
 ### -- set the job Name --
 # BSUB -J DDPM_train
 ### -- ask for number of cores (default: 1) --
@@ -39,4 +39,4 @@ cd /zhome/31/c/147318/DL_DDPM/
 source /zhome/31/c/147318/irishcream/bin/activate
 
 JID=${LSB_JOBID}
-python train.py CIFAR10 501 128
+python train.py CIFAR10 201 256
