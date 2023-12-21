@@ -1,11 +1,5 @@
-# import numpy as np
 import torch
-from torch import nn, Tensor
-# from torch.nn.functional import softplus
-# from torch.distributions import Distribution
-# import matplotlib.pyplot as plt
-# from model import UNet
-
+from torch import nn
 
 
 class DDPM(nn.Module):

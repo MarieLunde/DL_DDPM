@@ -6,13 +6,11 @@ from model import UNet
 from dataloader import get_dataloader
 from ddpm import DDPM
 import wandb
-from metrics import preprocess_fid_score, inception_score
+from metrics import preprocess_fid_score
 from torchmetrics.image.fid import FrechetInceptionDistance
 import time 
 import datetime
-import torchvision
 from utils import *
-from torch.optim.lr_scheduler import CyclicLR
 
 with_logging = True
 save_images = True
@@ -43,16 +41,7 @@ def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, grad
 
     print("model params", next(model.parameters()).get_device())
     
-    optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
-    # Specify cyclic learning rate parameters
-    base_lr = 0.001  # Initial learning rate
-    max_lr = 0.01    # Maximum learning rate
-    step_size_up = 100  # Number of steps for the learning rate to increase
-    step_size_down = 100  # Number of steps for the learning rate to decrease
-
-    # Create a cyclic learning rate scheduler
-    scheduler = CyclicLR(optimizer, base_lr, max_lr, step_size_up=step_size_up, step_size_down=step_size_down, mode='triangular')
-
+    optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
     MSE = nn.MSELoss()
     ddpm = DDPM(device=device)
@@ -91,7 +80,7 @@ def train(dataset_name, epochs, batch_size, device, dropout, learning_rate, grad
             if gradient_clipping:
                 nn.utils.clip_grad_norm_(model.parameters(), 1.0)
 
-            scheduler.step()
+            optimizer.step()
 
             # we only compute real features in the first batch to save time
             if save_metrics and epoch == 0:

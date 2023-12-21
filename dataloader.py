@@ -1,10 +1,5 @@
-import torch
-import torchvision
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
-
-import matplotlib.pyplot as plt
-import numpy as np
 
 num_workers = 4
 def get_dataloader(dataset_name, batch_size):
